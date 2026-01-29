@@ -1,0 +1,74 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - output reg [3:0] gray_out
+
+The module should implement a 4-bit Gray code counter. Assume all sequential
+logic is triggered on the positive edge of the clock. The reset input is active
+low asynchronous, and should reset the counter to 0.
+
+The Gray code counter should work as follows:
+- The counter should generate a 4-bit Gray code sequence
+- The counter increments every two clock cycles
+- The implementation should follow this process:
+  1. Input a Gray code value (use an internal wire variable initialized to 0)
+  2. Convert the Gray code to binary representation
+  3. Increment the binary value by 1
+  4. Convert the incremented binary back to Gray code
+  5. Output the resulting Gray code
+- Gray code is a binary numeral system where two successive values differ
+  in only one bit position
+- The counter should cycle through all 16 possible 4-bit Gray code values
+  and then repeat
+- When rst_n is low, the counter should reset to 0000
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+   input   clk,
+   input   rst_n,
+
+   output  reg [3:0] gray_out
+);
+//格雷码转二进制
+reg  [3:0] bin_out;
+wire [3:0] gray_wire;
+
+always @(posedge clk or negedge rst_n)begin
+   if(rst_n == 1'b0) begin
+      bin_out <= 4'b0;
+   end
+   else begin
+      bin_out[3] = gray_wire[3];
+      bin_out[2] = gray_wire[2]^bin_out[3];
+      bin_out[1] = gray_wire[1]^bin_out[2];
+      bin_out[0] = gray_wire[0]^bin_out[1];
+   end 
+end
+//二进制加一
+reg [3:0] bin_add_wire;
+always @(posedge clk or negedge rst_n)begin
+   if(rst_n == 1'b0) begin
+      bin_add_wire <= 4'b0;
+   end
+   else begin
+      bin_add_wire <= bin_out + 1'b1;
+   end
+end
+//二进制转格雷码
+assign gray_wire = (bin_add_wire >> 2) ^ bin_add_wire;
+
+always @(posedge clk or negedge rst_n)begin
+   if(rst_n == 1'b0) begin
+      gray_out <= 4'b0;
+   end
+   else begin
+      gray_out <= gray_wire;
+   end
+end
+endmodule
+```

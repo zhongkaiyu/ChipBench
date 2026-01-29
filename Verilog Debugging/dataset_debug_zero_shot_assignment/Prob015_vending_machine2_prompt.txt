@@ -1,0 +1,102 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst
+ - input  d1
+ - input  d2
+ - input  sel
+ - output reg out1
+ - output reg out2
+ - output reg out3
+
+The module should implement a vending machine that accepts two types of
+currency (0.5 yuan and 1 yuan) and dispenses two types of beverages
+(1.5 yuan and 2.5 yuan) with change dispensing capability.
+reset is active low
+
+The vending machine should work as follows:
+- Input currency: d1 represents 0.5 yuan, d2 represents 1 yuan
+- Beverage selection: sel chooses between two beverages
+- Beverage prices: Beverage 1 costs 1.5 yuan, Beverage 2 costs 2.5 yuan
+- Change dispensing: Only 0.5 yuan coins are dispensed as change
+
+Currency input behavior:
+- Input currency signals (d1, d2) are automatically edge-detected
+- Each currency input produces a pulse signal that goes high on clock
+  rising edge and low on clock falling edge
+- The machine accumulates the total amount of money inserted
+
+Beverage dispensing:
+- out1: Dispenses beverage 1 (1.5 yuan)
+- out2: Dispenses beverage 2 (2.5 yuan)
+- out3: Dispenses change (0.5 yuan coins only)
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input wire clk  ,
+	input wire rst  ,
+	input wire d1 ,
+	input wire d2 ,
+	input wire sel ,
+	
+	output reg out1,
+	output reg out2,
+	output reg out3
+);
+//*************code***********//
+
+    parameter S0=0, S0_5=1, S1=2, S1_5=3, S2=4, S2_5=5, S3=6;
+    reg[2:0] state, nstate;
+    
+    always@(posedge clk or negedge rst) begin
+        if(~rst)
+            state <= 0;
+        else
+            state <= nstate;
+    end
+    
+    always@(*) begin
+        case(state)
+            S0     : nstate = d1? S0_5:
+                              d2? S1:
+                              nstate;
+            S0_5   : nstate = d1? S1:
+                              d2? S1_5:
+                              nstate;
+            S1     : nstate = d1? S1_5:
+                              d2? S2:
+                              nstate;
+            S1_5   : nstate = ~sel? S0:
+                              d1? S2:
+                              d2? S2_5:
+                              nstate;
+            S2     : nstate = ~sel? S0:
+                              d1? S2_5:
+                              d2? S3:
+                              nstate;
+            default: nstate = S0;
+        endcase
+    end
+    
+    always@(*) begin
+        if(~rst) begin
+            {out1, out2, out3} = 3'b000;
+        end
+        else begin
+            case(state)
+                S0, S0_5, S1: {out1, out2, out3} = 0;
+                S1_5        : {out1, out2, out3} = ~sel? 3'b100: 3'b000;
+                S2          : {out1, out2, out3} = ~sel? 3'b101: 3'b000;
+                S2_5        : {out1, out2, out3} = ~sel? 3'b101: 3'b011;
+                S3          : {out1, out2, out3} = ~sel? 3'b101: 3'b001;
+                default     : {out1, out2, out3} = 3'b000;
+            endcase
+        end
+    end
+//*************code***********//
+endmodule
+```

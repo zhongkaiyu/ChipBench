@@ -1,0 +1,45 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  A_in (4 bits)
+ - input  B_in (4 bits)
+ - input  C_1
+ - output S (4 bits)
+ - output CO
+
+Implement a 4-bit carry look-ahead adder using gate-level description in
+Verilog. The logical expressions for the carry look-ahead adder are as
+follows:
+
+Intermediate variables: G_i = A_i AND B_i, P_i = A_i XOR B_i
+
+Sum: S_i = P_i XOR C_(i-1), Carry: C_i = G_i OR (P_i AND C_(i-1))
+
+Where C_i and C_(i-1) represent carry signals at positions i and i-1.
+
+The module should be implemented using gate-level primitives (AND, OR, XOR)
+rather than behavioral descriptions. All signals should be declared as wire
+type.
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+    input       [3:0]       A_in  ,
+    input       [3:0]       B_in  ,
+    input                   C_1   ,
+  
+    output   wire           CO    ,
+    output   wire [3:0]     S
+);
+    wire [3:0] G,P,C;
+    assign P=A_in^B_in;
+    assign G=A_in^B_in;
+     
+    assign C={G[3]|(P[3]&C[2]), G[2]|(P[2]&C[1]), G[1]|(P[1]&C[0]), G[0]|(P[0]&C_1)};
+    assign S={P[3]^C[2], P[2]^C[1], P[1]^C[0], P[0]^C_1};
+    assign CO=C[3];
+     
+endmodule
+```

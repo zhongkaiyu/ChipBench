@@ -1,0 +1,75 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  mode
+ - output reg [3:0] number
+ - output reg zero
+
+The module should implement a decimal up/down counter. Assume all sequential
+logic is triggered on the positive edge of the clock. The reset input is active
+low asynchronous, and should reset the counter to 0, and zero is also be 0.
+
+The up/down counter should work as follows:
+- When mode signal is 1, the counter increments (counts up) each clock cycle
+- When mode signal is 0, the counter decrements (counts down) each clock cycle
+- The counter output (number) is a 4-bit value representing the current count
+- The zero signal is asserted (goes high) for the next cycle when the number reaches 0, and is
+  low at all other times
+- When rst_n is low, the counter should reset to 0
+
+Counter operation:
+- Mode = 1: Counter increments each clock cycle (0, 1, 2, 3, ..., 9, 0, 1, ...), only up to 9
+- Mode = 0: Counter decrements each clock cycle (9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, ...)
+- Zero detection: The zero signal is high for next cycle only when number equals 0
+- Reset behavior: Active low reset to 0
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input mode,
+	output reg [3:0]number,
+	output reg zero
+	);
+
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				zero <= 1'd0;
+			end
+		else if (number == 4'd0)
+			begin
+				zero <= 1'b1;
+			end
+		else 
+			begin	
+				zero <= 1'b0;
+			end
+		
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				number <= 4'b0;
+			end
+		else if(mode)
+			begin
+				if(number == 10)
+					number <= 0;
+				else
+					number <= number + 1'd1;
+			end
+		else if(!mode)
+			begin
+				if(number == 0)
+					number <= 9;
+				else
+					number <= number - 1'd1;
+			end
+		else number <= number;
+endmodule
+```

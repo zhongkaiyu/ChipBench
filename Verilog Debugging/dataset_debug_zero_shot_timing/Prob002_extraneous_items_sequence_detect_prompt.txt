@@ -1,0 +1,83 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  a
+ - output match
+
+The module should implement a sequence detection circuit that detects the
+pattern "011XXX110" in the input data stream. The pattern consists of 9 bits
+where the first 3 bits are "011", the last 3 bits are "110", and the middle
+3 bits can be any value (don't care).
+
+The sequence detection should work as follows:
+- Monitor the input data stream continuously
+- Detect when the pattern "011XXX110" appears in the input
+- Output match signal should be high when the pattern is detected
+- Output match signal should be low at all other times
+
+Implementation approach:
+The module should use a 9-bit shift register to store the last 9 input bits.
+The match signal should be asserted when:
+- The first 3 bits (bits 8:6) equal "011" AND
+- The last 3 bits (bits 2:0) equal "110"
+- The middle 3 bits (bits 5:3) can be any value
+
+### Timing and Behavior:
+- When rst_n is low, the module should reset to its initial state
+- On every positive clock edge (clk), the module should shift in the new input bit
+- The output match is updated sequentially
+- The detection is continuous - the module checks for the pattern on every clock cycle
+
+
+Based on the problem description above, the code below has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input a,
+	output match
+	);
+
+	reg [8:0] a_tem;
+	reg match_f;
+	reg match_b;
+	
+	always @(*) begin
+        if (!rst_n)
+            match_f = 1'b0;
+        else if (a_tem[8:6] == 3'b011)
+            match_f = 1'b1;
+        else
+            match_f = 1'b0;
+        end
+
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				match_b <= 1'b0;
+			end
+		else if (a_tem[2:0] == 3'b110)
+			begin
+				match_b <= 1'b1;
+			end
+		else 
+			begin	
+				match_b <= 1'b0;
+			end
+			
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				a_tem <= 9'b0;
+			end
+		else 
+			begin
+				a_tem <= {a_tem[7:0],a};
+			end
+			
+	assign match = match_b && match_f;
+endmodule
+```

@@ -1,0 +1,61 @@
+I would like you to implement a module named `TopModule` with the following interface. All input and output ports are one bit unless otherwise specified.
+
+- **Input ports**:
+  - `clk`
+  - `rst_n`
+  - `a`
+
+- **Output ports**:
+  - `match`
+
+The module should implement an 8-bit shift register that shifts in the input `a` on every positive edge of the clock. The shift register is named `a_tem` and retains the 8 most recent bits of `a`. The module should perform the following functionality:
+
+1. **Reset Behavior**:
+   - When `rst_n` is de-asserted (logic 0), the shift register `a_tem` should be cleared to `8'b0`, and the output `match` should be set to `0`.
+
+2. **Shift Register Behavior**:
+   - On every positive edge of the clock, if `rst_n` is asserted (logic 1), the input `a` should be shifted into the least significant bit (LSB) of the shift register `a_tem`, and the previous bits should shift left by one position.
+
+3. **Matching Logic**:
+   - The output `match` should be asserted (logic 1) whenever the value of the shift register `a_tem` matches the specific 8-bit pattern `8'b0111_0001`.
+   - If the shift register does not match this pattern, the output `match` should remain de-asserted (logic 0).
+
+The design must operate synchronously with the clock and use a negative edge active reset (`rst_n`). Ensure the module correctly implements this functionality.
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input a,
+	output reg match
+	);
+
+	reg [7:0] a_tem;
+	
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				match <= 1'b0;
+			end
+		else if (a_tem == 8'b0111_0011)
+			begin
+				match <= 1'b1;
+			end
+		else 
+			begin	
+				match <= 1'b0;
+			end
+		
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				a_tem <= 8'b0;
+			end
+		else 
+			begin
+				a_tem <= {a_tem[6:0],a};
+			end
+endmodule
+```

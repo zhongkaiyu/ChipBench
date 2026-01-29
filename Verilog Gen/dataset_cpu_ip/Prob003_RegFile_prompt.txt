@@ -1,0 +1,32 @@
+
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst
+ - input  rg_wrt_en
+ - input  rg_wrt_dest  (5 bits)
+ - input  rg_rd_addr1  (5 bits)
+ - input  rg_rd_addr2  (5 bits)
+ - input  rg_wrt_data  (32 bits)
+ - output rg_rd_data1  (32 bits)
+ - output rg_rd_data2  (32 bits)
+
+The module should implement a 32-register file with 32-bit wide registers
+and two read ports, one write port. The number of registers is 2^5 = 32.
+
+Behavioral requirements:
+ - Reset is active-high synchronous. When rst=1 at a rising clock edge, all
+   registers must be set to 32'd0.
+ - A write occurs on the rising edge of clk when rg_wrt_en=1. The register
+   at index rg_wrt_dest is updated with rg_wrt_data.
+ - The two read outputs are purely combinational and continuously reflect the
+   current contents of the addressed registers: rg_rd_data1 corresponds to
+   register at rg_rd_addr1, and rg_rd_data2 corresponds to register at
+   rg_rd_addr2.
+ - If a write and read target the same register index in the same cycle, the
+   read outputs reflect the register contents prior to the clock edge; the
+   written value is visible after the rising edge that performs the write.
+
+

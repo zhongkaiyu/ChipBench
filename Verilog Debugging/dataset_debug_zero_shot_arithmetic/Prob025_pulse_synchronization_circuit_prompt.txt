@@ -1,0 +1,73 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk_fast
+ - input  clk_slow
+ - input  rst_n
+ - input  data_in
+ - output data_out
+
+Extract a single clock cycle width pulse from clock domain A and establish
+another single clock width pulse in a new clock domain B.
+
+The frequency of clock domain A is 10 times that of clock domain B. The
+intervals between pulses in clock domain A are large, so there is no need
+to consider the problem of pulses being too close together.
+
+When the fast clock domain detects an input pulse, it will toggle a flag
+signal and synchronize it to the slow clock domain. After the slow clock
+domain detects the change in this flag signal, it outputs a corresponding
+single cycle pulse.
+
+The rst_n signal is an active-low asynchronous reset signal. Assume all
+sequential logic is triggered on the positive edge of the clock.
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+    input              clk_fast    , 
+    input              clk_slow    ,   
+    input              rst_n       ,
+    input               data_in     ,
+ 
+    output           data_out
+);
+reg     Q_fast;
+always @(posedge clk_fast or negedge rst_n) begin
+    if(~rst_n) begin
+        Q_fast <= 'd0;
+    end 
+    else if(data_in)begin
+        Q_fast <= ~Q_fast;
+    end
+    else if(~data_in)begin
+        Q_fast <= Q_fast;
+    end
+end
+reg    Q_buff0;
+reg    Q_buff1;
+always @(posedge clk_slow or negedge rst_n) begin 
+    if(~rst_n) begin
+        Q_buff0 <= 'd0;
+        Q_buff1 <= 'd0;
+    end 
+    else begin
+        Q_buff0 <= Q_fast;
+        Q_buff1 <= Q_buff0;
+    end
+end
+reg     Q_slow;
+always @(posedge clk_slow or negedge rst_n) begin
+    if(~rst_n) begin
+        Q_slow <= 'd0;
+    end 
+    else begin
+        Q_slow <= Q_buff1;
+    end
+end
+ 
+assign data_out = Q_buff1 & Q_slow;
+endmodule
+```

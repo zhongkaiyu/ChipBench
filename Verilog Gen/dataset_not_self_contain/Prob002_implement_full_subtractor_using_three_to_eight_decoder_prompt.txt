@@ -1,0 +1,96 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  A
+ - input  B
+ - input  Ci
+ - output D
+ - output Co
+
+Implement a full subtractor using a 3-to-8 decoder and necessary logic
+gates. In the full subtractor: A is the minuend (the number being
+subtracted from), B is the subtrahend (the number being subtracted), Ci
+is the borrow input from the lower bit position, D is the difference, and
+Co is the borrow output to the higher bit position.
+
+You are provided with the following 3-to-8 decoder module code, which you
+should include and instantiate in your solution:
+
+```
+module decoder_38(
+   input             E      ,
+   input             A0     ,
+   input             A1     ,
+   input             A2     ,
+   
+   output reg       Y0n    ,  
+   output reg       Y1n    , 
+   output reg       Y2n    , 
+   output reg       Y3n    , 
+   output reg       Y4n    , 
+   output reg       Y5n    , 
+   output reg       Y6n    , 
+   output reg       Y7n    
+);
+
+always @(*)begin
+   if(!E)begin
+      Y0n = 1'b1;
+      Y1n = 1'b1;
+      Y2n = 1'b1;
+      Y3n = 1'b1;
+      Y4n = 1'b1;
+      Y5n = 1'b1;
+      Y6n = 1'b1;
+      Y7n = 1'b1;
+   end  
+   else begin
+      case({A2,A1,A0})
+         3'b000 : begin
+                     Y0n = 1'b0; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b001 : begin
+                     Y0n = 1'b1; Y1n = 1'b0; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b010 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b0; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b011 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b0; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b100 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b0; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b101 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b0; Y6n = 1'b1; Y7n = 1'b1;
+                  end 
+         3'b110 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b0; Y7n = 1'b1;
+                  end 
+         3'b111 : begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b0;
+                  end 
+         default: begin
+                     Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+                     Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+                  end
+      endcase  
+   end 
+end    
+     
+endmodule
+```
+
+You should instantiate this decoder module in your implementation and use
+it along with logic gates to implement the full subtractor functionality.
+The decoder outputs are active-low, where only one output is low (0) at a
+time based on the input address.

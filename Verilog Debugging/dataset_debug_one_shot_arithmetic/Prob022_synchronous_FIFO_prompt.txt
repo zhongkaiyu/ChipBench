@@ -1,0 +1,156 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  winc
+ - input  rinc
+ - input  wdata (WIDTH bits)
+ - output wfull
+ - output rempty
+ - output rdata (WIDTH bits)
+
+The module should implement a synchronous FIFO (First In, First Out) buffer
+that uses a dual-port RAM for data storage. The FIFO should be parameterizable
+in both WIDTH and DEPTH, with configurable bit WIDTH and DEPTH parameters.
+
+The synchronous FIFO should work as follows:
+- Input interface:
+  - clk: Single clock signal for both read and write operations
+  - rst_n: Active low reset signal
+  - winc: Write enable signal (pulse to write data)
+  - rinc: Read enable signal (pulse to read data)
+  - wdata: 8-bit input data to be written
+- Output interface:
+  - wfull: FIFO full flag (high when FIFO is full)
+  - rempty: FIFO empty flag (high when FIFO is empty)
+  - rdata: 8-bit output data read from FIFO
+
+FIFO operation:
+- Write operations occur on the positive edge of clk when winc is high
+- Read operations occur on the positive edge of clk when rinc is high
+- The FIFO uses a dual-port RAM for data storage
+- Write and read pointers are managed to track FIFO status
+- Full and empty conditions are detected based on pointer comparison
+- The FIFO should handle simultaneous read and write operations correctly
+
+Dual-port RAM module (provided):
+```
+module dual_port_RAM #(parameter DEPTH = 16,
+   parameter WIDTH = 8)(
+ input wclk
+,input wenc
+,input [$clog2(DEPTH)-1:0] waddr  
+,input [WIDTH-1:0] wdata      
+,input rclk
+,input renc
+,input [$clog2(DEPTH)-1:0] raddr 
+,output reg [WIDTH-1:0] rdata
+);
+
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+
+always @(posedge wclk) begin
+    if(wenc)
+        RAM_MEM[waddr] <= wdata;
+end 
+
+always @(posedge rclk) begin
+    if(renc)
+        rdata <= RAM_MEM[raddr];
+end 
+
+endmodule  
+```
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule#(
+	parameter	WIDTH = 8,
+	parameter 	DEPTH = 16
+)(
+	input 					clk		, 
+	input 					rst_n	,
+	input 					winc	,
+	input 			 		rinc	,
+	input 		[WIDTH-1:0]	wdata	,
+ 
+	output 				    wfull	,
+	output 				    rempty	,
+	output wire [WIDTH-1:0]	rdata
+);
+ 
+localparam DP_WD = $clog2(DEPTH);
+ 
+reg  [DP_WD   :0]waddr;
+wire             wenc;
+wire             waddr_d_h;
+wire [DP_WD -1:0]waddr_d_l;
+assign wenc = winc & wfull;
+assign waddr_d_h = (waddr[DP_WD-1:0] == DEPTH-1) ? ~waddr[DP_WD] : waddr[DP_WD];
+assign waddr_d_l = (waddr[DP_WD-1:0] == DEPTH-1) ? 0 : waddr[DP_WD-1:0] + 1;
+always @(posedge clk or negedge rst_n)begin
+	if(~rst_n)    waddr <= 0;
+	else if(wenc) waddr <= {waddr_d_h, waddr_d_l};
+end
+ 
+reg  [DP_WD   :0]raddr;
+wire             renc;
+wire             raddr_d_h;
+wire [DP_WD -1:0]raddr_d_l;
+assign renc = rinc & (!rempty);
+assign raddr_d_h = (raddr[DP_WD-1:0] == DEPTH-1) ? ~raddr[DP_WD] : raddr[DP_WD];
+assign raddr_d_l = (raddr[DP_WD-1:0] == DEPTH-1) ? 0 : raddr[DP_WD-1:0] + 1;
+always @(posedge clk or negedge rst_n)begin
+	if(~rst_n)    raddr <= 0;
+	else if(renc) raddr <= {raddr_d_h, raddr_d_l};
+end
+ 
+wire [DP_WD :0]fifo_cnt = (waddr[DP_WD] == raddr[DP_WD]) ? waddr[DP_WD-1:0] - raddr[DP_WD-1:0]:
+				          (waddr[DP_WD-1:0] + DEPTH - raddr[DP_WD-1:0]);
+ 
+assign rempty = (fifo_cnt == 0);
+assign wfull = (fifo_cnt == DEPTH);
+ 
+dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH))
+u_ram (
+	.wclk	(clk),
+	.wenc	(wenc),
+	.waddr	(waddr[$clog2(DEPTH)-1:0]),
+	.wdata	(wdata),
+	.rclk	(clk),
+	.renc	(renc),
+	.raddr	(raddr[$clog2(DEPTH)-1:0]),
+	.rdata	(rdata)
+);
+ 
+endmodule
+
+/**********************************RAM************************************/
+module dual_port_RAM #(parameter DEPTH = 16,
+					   parameter WIDTH = 8)(
+	 input wclk
+	,input wenc
+	,input [$clog2(DEPTH)-1:0] waddr  //深度对2取对数，得到地址的位宽。
+	,input [WIDTH-1:0] wdata      	//数据写入
+	,input rclk
+	,input renc
+	,input [$clog2(DEPTH)-1:0] raddr  //深度对2取对数，得到地址的位宽。
+	,output reg [WIDTH-1:0] rdata 		//数据输出
+);
+ 
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+ 
+always @(posedge wclk) begin
+	if(wenc)
+		RAM_MEM[waddr] <= wdata;
+end 
+ 
+always @(posedge rclk) begin
+	if(renc)
+		rdata <= RAM_MEM[raddr];
+end 
+ 
+endmodule  
+```

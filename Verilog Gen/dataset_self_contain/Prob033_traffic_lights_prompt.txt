@@ -1,0 +1,37 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  pass_request
+ - output reg [7:0] clock
+ - output reg red
+ - output reg yellow
+ - output reg green
+
+The module should implement a traffic light controller with pedestrian
+request functionality. Assume all sequential logic is triggered on the
+positive edge of the clock. The reset input is active low asynchronous,
+and should reset the traffic light to red state.
+
+The traffic light controller should work as follows:
+- Normal operation: Traffic light cycles through red (10 clock cycles),
+  green (60 clock cycles), and yellow (5 clock cycles) in sequence
+- Pedestrian request: When pass_request is active, if remaining green time
+  is greater than 10 clock cycles, it should be shortened to 10 clock
+  cycles; if remaining green time is 10 clock cycles or less, it remains
+  unchanged
+- Light sequence: Red → Green → Yellow → Red (repeating)
+- Clock counter: The clock output shows the countdown timer for the current
+  light state
+- Light outputs: Only one light should be active at a time (red, yellow,
+  or green)
+
+Traffic light operation:
+- Red light: 10 clock cycles, clock counts down from 10 to 1
+- Green light: 60 clock cycles normally, or 10 clock cycles if pedestrian
+  request is active and remaining time > 10
+- Yellow light: 5 clock cycles, clock counts down from 5 to 1
+- Pedestrian request: Shortens green time to 10 cycles if remaining time > 10
+- Reset behavior: Active low reset to red state with clock = 10

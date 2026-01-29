@@ -1,0 +1,253 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  [3:0] mul_a
+ - input  [3:0] mul_b
+ - output reg [7:0] mul_out
+
+The module should implement a 4-bit unsigned pipelined multiplier. Assume all
+sequential logic is triggered on the positive edge of the clock. The reset
+input is active low asynchronous, and should reset the multiplier to 0.
+
+The pipelined multiplier should work as follows:
+- The multiplier performs unsigned multiplication of two 4-bit inputs (mul_a and mul_b)
+- The result is an 8-bit output (mul_out) representing the product
+- The multiplication is implemented using a pipelined architecture for improved
+  performance and throughput
+- The pipeline allows new inputs to be processed every clock cycle while
+  previous multiplications are still being completed
+- When rst_n is low, the multiplier should reset to 0
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule#(
+	parameter size = 4
+)(
+	input 						clk 		,   
+	input 						rst_n		,
+	input	[size-1:0]			mul_a		,
+	input	[size-1:0]			mul_b		,
+ 
+ 	output	reg	[size*2-1:0]	mul_out		
+);
+    //parameter 
+    parameter N = size * 2;
+    //defination
+    wire [N - 1 : 0] temp [0 : 3];
+    
+    reg [N - 1 : 0] adder_0;
+    reg [N - 1 : 0] adder_1;
+    
+    //output 
+    genvar i;
+    generate
+        for(i = 0; i < 4; i = i + 1)begin : loop
+            assign temp[i] = mul_b[i] ? mul_a << (i-1) : 'd0;
+        end
+    endgenerate
+    
+    always@(posedge clk or negedge rst_n)begin
+        if(!rst_n) adder_0 <= 'd0;
+        else adder_0 <= temp[0] + temp[1];
+    end
+    
+    always@(posedge clk or negedge rst_n)begin
+        if(!rst_n) adder_1 <= 'd0;
+        else adder_1 <= temp[2] + temp[3];
+    end
+    
+    always@(posedge clk or negedge rst_n)begin
+        if(!rst_n) mul_out <= 'd0;
+        else mul_out <= adder_0 + adder_1;
+    end
+endmodule
+```
+
+======= VCD OUTPUT BEGIN =======
+$date
+	Mon Dec  1 21:25:36 2025
+$end
+$version
+	Icarus Verilog
+$end
+$timescale
+	1ps
+$end
+$scope module tb $end
+$scope module stim1 $end
+$var wire 1 ! clk $end
+$upscope $end
+$upscope $end
+$scope module tb $end
+$var wire 1 " tb_mismatch $end
+$upscope $end
+$scope module tb $end
+$var reg 1 ! clk $end
+$upscope $end
+$scope module tb $end
+$var wire 1 # rst_n $end
+$upscope $end
+$scope module tb $end
+$var wire 4 $ mul_a [3:0] $end
+$upscope $end
+$scope module tb $end
+$var wire 4 % mul_b [3:0] $end
+$upscope $end
+$scope module tb $end
+$var wire 8 & mul_out_ref [7:0] $end
+$upscope $end
+$scope module tb $end
+$var wire 8 ' mul_out_dut [7:0] $end
+$upscope $end
+$enddefinitions $end
+$comment Show the parameter values. $end
+$dumpall
+$end
+#0
+$dumpvars
+bx '
+bx &
+b0 %
+b0 $
+0#
+0"
+0!
+$end
+#5
+0"
+b0 &
+b0 '
+1!
+#10
+0!
+#15
+1!
+#20
+0!
+#25
+1!
+#30
+0!
+#35
+1!
+#40
+0!
+#45
+1!
+#50
+0!
+#55
+1!
+#60
+0!
+#65
+1!
+#70
+0!
+#75
+1!
+#80
+0!
+#85
+1!
+#90
+0!
+#95
+1#
+1!
+#100
+0!
+#105
+b11 %
+b10 $
+1!
+#110
+0!
+#115
+b101 %
+b100 $
+1!
+#120
+0!
+#125
+1"
+b110 &
+b10 '
+b1000 %
+b111 $
+1!
+#130
+0!
+#135
+b1000 '
+b10100 &
+b1010 %
+b1001 $
+1!
+#140
+0!
+#145
+b111000 &
+b11100 '
+b1101 %
+b1100 $
+1!
+#150
+0!
+#155
+b101101 '
+b1011010 &
+b1111 %
+b1111 $
+1!
+#160
+0!
+#165
+b10011100 &
+b1001000 '
+b101 %
+b0 $
+1!
+#170
+0!
+#175
+b11101001 '
+b11100001 &
+b0 %
+b11 $
+1!
+#180
+0!
+#185
+0"
+b0 &
+b0 '
+b1 %
+b1 $
+1!
+#190
+0!
+#195
+b1111 $
+1!
+#200
+0!
+#205
+1"
+b1 &
+b10000000 '
+b1111 %
+b1 $
+1!
+#210
+0!
+#215
+b1111 &
+1!
+#216
+
+======= VCD OUTPUT END =======

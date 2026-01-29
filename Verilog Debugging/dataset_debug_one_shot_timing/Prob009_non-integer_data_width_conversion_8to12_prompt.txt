@@ -1,0 +1,83 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  valid_in
+ - input  data_in (8 bits)
+ - output valid_out
+ - output data_out (12 bits)
+
+The module should implement a data width conversion circuit that converts
+8-bit input data into 12-bit output data. The circuit uses valid-only
+handshake mechanism for both input and output interfaces.
+
+The data width conversion should work as follows:
+- Input interface: Uses valid-only handshake mechanism
+  - valid_in indicates the validity of input data_in
+- Output interface: Uses valid-only handshake mechanism
+  - valid_out indicates the validity of output data_out
+
+Data conversion process:
+- The module receives 8-bit input data_in when valid_in is high
+- The module accumulates two 8-bit inputs to form a 12-bit output
+- The first received 8-bit data should be placed in the high bits of data_out
+- The second received 8-bit data should be placed in the low bits of data_out
+- After receiving exactly 2 input data values, the module outputs data_out
+  with valid_out asserted in the next clock cycle
+- If only one data input is received, the module waits for the second input
+  before producing any output
+
+Based on the problem description above, the code below has bug, please fix that:
+```
+module TopModule(
+	input 				   clk 		,   
+	input 			      rst_n		,
+	input				      valid_in	,
+	input	[7:0]			   data_in	,
+ 
+ 	output  reg			   valid_out,
+	output  reg [11:0]   data_out
+);
+reg 	[7:0]		data_lock;
+reg 	[1:0]		valid_cnt		;
+always @(posedge clk or negedge rst_n ) begin
+	if(!rst_n) 
+		data_lock <= 'd0;
+	else if(valid_in )
+		data_lock <= data_in;
+end
+always @(*) begin
+	if (!rst_n)
+		valid_cnt = 2'd0;
+	else if (valid_in) begin
+		if (valid_cnt == 2'd2)
+			valid_cnt = 2'd0;
+		else
+			valid_cnt = valid_cnt + 1'd1;
+	end
+	else
+		valid_cnt = valid_cnt; // hold current value
+end
+
+always @(posedge clk or negedge rst_n ) begin
+	if(!rst_n) 
+		valid_out <= 'd0;
+	else if(valid_in && valid_cnt == 2'd1)
+		valid_out <= 1'd1;
+	else if(valid_in && valid_cnt == 2'd2)
+		valid_out <= 1'd1;
+	else
+		valid_out <= 'd0;
+end
+always @(posedge clk or negedge rst_n ) begin
+	if(!rst_n) 
+		data_out <= 'd0;
+	else if(valid_in && valid_cnt == 2'd1)
+		data_out <= {data_lock, data_in[7:4]};
+	else if(valid_in && valid_cnt == 2'd2)
+		data_out <= {data_lock[3:0], data_in};
+end
+endmodule
+```

@@ -1,0 +1,22 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  [3:0] mul_a
+ - input  [3:0] mul_b
+ - output reg [7:0] mul_out
+
+The module should implement a 4-bit unsigned pipelined multiplier. Assume all
+sequential logic is triggered on the positive edge of the clock. The reset
+input is active low asynchronous, and should reset the multiplier to 0.
+
+The pipelined multiplier should work as follows:
+- The multiplier performs unsigned multiplication of two 4-bit inputs (mul_a and mul_b)
+- The result is an 8-bit output (mul_out) representing the product
+- The multiplication is implemented using a pipelined architecture for improved
+  performance and throughput
+- The pipeline allows new inputs to be processed every clock cycle while
+  previous multiplications are still being completed
+- When rst_n is low, the multiplier should reset to 0

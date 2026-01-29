@@ -1,0 +1,66 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  winc
+ - input  rinc
+ - input  wdata (WIDTH bits)
+ - output wfull
+ - output rempty
+ - output rdata (WIDTH bits)
+
+The module should implement a synchronous FIFO (First In, First Out) buffer
+that uses a dual-port RAM for data storage. The FIFO should be parameterizable
+in both WIDTH and DEPTH, with configurable bit WIDTH and DEPTH parameters.
+
+The synchronous FIFO should work as follows:
+- Input interface:
+  - clk: Single clock signal for both read and write operations
+  - rst_n: Active low reset signal
+  - winc: Write enable signal (pulse to write data)
+  - rinc: Read enable signal (pulse to read data)
+  - wdata: 8-bit input data to be written
+- Output interface:
+  - wfull: FIFO full flag (high when FIFO is full)
+  - rempty: FIFO empty flag (high when FIFO is empty)
+  - rdata: 8-bit output data read from FIFO
+
+FIFO operation:
+- Write operations occur on the positive edge of clk when winc is high
+- Read operations occur on the positive edge of clk when rinc is high
+- The FIFO uses a dual-port RAM for data storage
+- Write and read pointers are managed to track FIFO status
+- Full and empty conditions are detected based on pointer comparison
+- The FIFO should handle simultaneous read and write operations correctly
+
+Dual-port RAM module (provided):
+```
+module dual_port_RAM #(parameter DEPTH = 16,
+   parameter WIDTH = 8)(
+ input wclk
+,input wenc
+,input [$clog2(DEPTH)-1:0] waddr  
+,input [WIDTH-1:0] wdata      
+,input rclk
+,input renc
+,input [$clog2(DEPTH)-1:0] raddr 
+,output reg [WIDTH-1:0] rdata
+);
+
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+
+always @(posedge wclk) begin
+    if(wenc)
+        RAM_MEM[waddr] <= wdata;
+end 
+
+always @(posedge rclk) begin
+    if(renc)
+        rdata <= RAM_MEM[raddr];
+end 
+
+endmodule  
+```
+

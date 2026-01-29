@@ -1,0 +1,54 @@
+### **Task Description**
+Design a **4-to-1 multiplexer (4:1 MUX)** in Verilog.
+The output must be defined as a **wire** type, and the logic should be implemented using an `assign` statement.
+
+---
+
+### **Signal Description**
+
+**Inputs:**
+I would like you to implement a module named TopModule with the following
+interface.
+- `d0`, `d1`, `d2`, `d3` — 2-bit data inputs (`[1:0]`, type: `wire`)
+- `sel` — 2-bit selection signal (`[1:0]`, type: `wire`)
+
+**Output:**
+- `mux_out` — 2-bit output signal (`[1:0]`, type: `wire`)
+
+---
+
+### **Selection Behavior**
+
+| `sel` | Output (`mux_out`) |
+| ----- | ------------------ |
+| 00    | d0                 |
+| 01    | d1                 |
+| 10    | d2                 |
+| 11    | d3                 |
+
+---
+
+### **Given Input Values**
+
+| Signal | Binary Value |
+| ------ | ------------- |
+| d0     | 11            |
+| d1     | 10            |
+| d2     | 01            |
+| d3     | 00            |
+
+---
+
+### **Waveform Explanation**
+
+* The first diagram shows the 4:1 multiplexer connections:
+  * Inputs: `d0`, `d1`, `d2`, `d3`, and `sel`
+  * Output: `mux_out`
+* The second diagram shows simulation waveforms:
+  * As `sel` changes (00 → 01 → 10 → 11), `mux_out` updates accordingly (11 → 10 → 01 → 00)
+
+---
+
+### **Question Prompt**
+
+Write the **Verilog code** for this 4-to-1 multiplexer using a **wire-type output** and a single **assign** statement.

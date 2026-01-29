@@ -1,0 +1,84 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  set
+ - input  [3:0] set_num
+ - output reg zero
+ - output reg [3:0] number
+
+The module should implement a hexadecimal settable counter. Assume all
+sequential logic is triggered on the positive edge of the clock. The reset
+input is active low asynchronous, and should reset the counter to 0.
+
+The settable counter should work as follows:
+- The counter increments on each clock cycle and cycles through hexadecimal
+  values (0 to F, then back to 0)
+- When the counter reaches 0, the zero signal is asserted (goes high)
+- When the set signal is active, the counter output is forced to the value
+  of set_num instead of incrementing
+- The zero signal is high only when the number equals 0, and low at all
+  other times
+- When rst_n is low, the counter should reset to 0
+- the output zero and number will be update on the next rising edge of the clock.
+
+Counter operation:
+- Normal counting: Counter increments each clock cycle (0, 1, 2, ..., F, 0, 1, ...).
+- Set operation: When set is active, number is set to set_num value
+- Zero detection: The zero signal is high only when number equals 0
+- Reset behavior: Active low reset to 0
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input set,
+	input [3:0] set_num,
+	output reg [3:0]number,
+	output reg zero
+	);
+	reg [3:0]num;
+	
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				zero <= 1'd0;
+			end
+		else if (num == 4'd1)
+			begin
+				zero <= 1'b1;
+			end
+		else 
+			begin	
+				zero <= 1'b0;
+			end
+		
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				num <= 4'b0;
+			end
+		else if(set)
+			begin
+				num <= set_num;
+			end
+		else 
+			begin
+				num <= num + 1'd1;
+			end
+
+	always @(posedge clk or negedge rst_n)
+		if (!rst_n)
+			begin 
+				number <= 1'd0;
+			end
+		else 
+			begin
+				number <= num;
+			end			
+
+endmodule
+```

@@ -1,0 +1,88 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk_in
+ - input  rst
+ - output clk_out
+
+The module should implement an arbitrary fractional frequency divider that
+can achieve non-integer division ratios, such as 8.7x frequency division.
+
+The fractional frequency divider should work as follows:
+- Input clock: clk_in (reference clock signal)
+- Output clock: clk_out (divided clock signal)
+- Division ratio: 8.7x (output frequency is 1/8.7 of input frequency)
+- Reset: rst is active low
+
+Fractional division principle:
+Since hardware cannot perform fractional operations (e.g., 2.1 clock cycles
+or 3.3 registers), fractional division cannot achieve exact fractional
+periods for each output clock cycle. Instead, the implementation uses
+the least common multiple approach to achieve the desired average frequency.
+
+For 8.7x division:
+- Over 10 input clock cycles, the output should produce 53 output clock
+  cycles to achieve an average 8.7x division ratio
+- This means: 53 output cycles / 10 input cycles = 5.3x, which when
+  inverted gives 1/5.3 ≈ 1/8.7x frequency division
+
+I give u some useful parameter:
+parameter M_N = 8'd87; 
+parameter c89 = 8'd24; // 8/9 clock switching point
+parameter div_e = 5'd8; //even period
+parameter div_o = 5'd9; //odd period
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+     input  wire clk_in,
+     input  wire rst,
+     output wire clk_out
+);
+    parameter M_N = 8'd87; 
+    parameter c89 = 8'd24;  
+    parameter div_e = 5'd8;
+    parameter div_o = 5'd9;
+//*************code***********//
+    reg [3:0] clk_cnt;
+    reg [6:0] cyc_cnt;
+    reg div_flag;
+    reg clk_out_r;
+    
+    always@(posedge clk_in or negedge rst) begin
+        if(~rst)
+            clk_cnt <= 0;
+        else if(~div_flag)
+            clk_cnt <= clk_cnt==(div_e-1)? 0: clk_cnt+1;
+        else
+            clk_cnt <= clk_cnt==(div_o-1)? 0: clk_cnt+1;
+    end
+    
+    always@(posedge clk_in or negedge rst) begin
+        if(~rst)
+            cyc_cnt <= 0;
+        else
+            cyc_cnt <= cyc_cnt==(M_N-1)? 0: cyc_cnt+1;
+    end
+    
+    always@(posedge clk_in or negedge rst) begin
+        if(~rst)
+            div_flag <= 0;
+        else
+            div_flag <= cyc_cnt==(M_N-1)||cyc_cnt==(c89-1)? ~div_flag: div_flag;
+    end
+    
+    always@(posedge clk_in or negedge rst) begin
+        if(~rst)
+            clk_out_r <= 0;
+        else if(~div_flag)
+            clk_out_r <= clk_cnt<=((div_e>>1)+1);
+        else
+            clk_out_r <= clk_cnt<=((div_o>>2)+1);
+    end
+    
+    assign clk_out = clk_out_r;
+//*************code***********//
+endmodule
+```

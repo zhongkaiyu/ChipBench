@@ -1,0 +1,121 @@
+I would like you to implement a module named `TopModule` with the following interface. All input and output ports are one bit unless otherwise specified.
+
+### Inputs:
+- `clk`: System clock signal.
+- `rst_n`: Asynchronous reset signal, active low.
+- `data`: Single-bit input signal, representing the data to be checked.
+
+### Outputs:
+- `match`: A signal that outputs `1` when the input signal `data` matches the target sequence `011100`. It remains `0` at all other times.
+- `not_match`: A signal that outputs `1` when the input signal `data` does not match the target sequence `011100`. It remains `0` at all other times.
+
+### Module Description:
+The module must detect the sequence `011100` from the input signal `data`. Please use the state machine to solve this problem. The detection rules are as follows:
+1. The sequence check begins with every sixth bit of input data, meaning the module processes the input in groups of six bits and does not overlap or reuse bits between groups.
+2. If the first bit of a group does not match the sequence, the module skips the entire group and starts checking from the next group beginning at the seventh bit.
+3. When the sequence `011100` is detected, the `match` output should assert (go high).
+4. If the sequence is not detected in a group, the `not_match` output should assert (go high).
+
+### Output Logic:
+The output signals `match` and `not_match` should be implemented as follows:
+- Declare both outputs as `reg` type: `output reg match, output reg not_match`
+- Use combinational logic with Wildcard Sensitivity List block to control the outputs
+- The outputs are mutually exclusive - only one can be high at a time
+
+### Timing and Behavior:
+- When `rst_n` is low, the module should reset to its initial state and begin sequence detection from the start.
+- On every positive clock edge (`clk`), the module should evaluate the input signal `data` and transition states accordingly.
+
+Based on the problem description above, the code below has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input data,
+	output reg match,
+	output reg not_match
+	);
+
+
+reg [3:0] pstate,nstate;
+
+parameter idle=4'd0,
+		  s1=4'd1,
+          s2=4'd2,
+          s3=4'd3,
+          s4=4'd4,
+          s5=4'd5,
+          s6=4'd6,
+		  sf1=4'd7,
+          sf2=4'd8,
+          sf3=4'd9,
+          sf4=4'd10,
+          sf5=4'd11,
+          sf6=4'd12;
+
+always @(posedge clk or negedge rst_n)
+begin
+    if(!rst_n)
+        pstate<=idle;
+    else
+        pstate<=nstate;
+end
+
+always @(pstate or data)
+begin
+    case(pstate)
+        idle:
+            if(data==0)
+                nstate=s1;			//第一位匹配
+            else
+                nstate=sf1;
+        s1:
+            nstate=data?s2:sf2;
+        s2:
+            nstate=data?s3:sf3;
+        s3:
+            nstate=data?s4:sf4;
+        s4:
+            nstate=data?sf5:s5;
+        s5:
+            nstate=data?sf6:s6;
+        s6:
+            nstate=data?sf1:s1;
+        sf1:
+            nstate=sf2;
+        sf2:
+            nstate=sf3;
+        sf3:
+            nstate=sf4;
+        sf4:
+            nstate=sf5;
+        sf5:
+            nstate=sf6;
+        sf6:
+			nstate=data?sf1:s1;
+        default:
+            nstate=idle;
+        endcase
+end
+
+always @(posedge clk or negedge rst_n) begin
+	if (!rst_n) begin
+		match <= 1'b0;
+		not_match <= 1'b0;
+	end
+	else if (pstate == s6) begin
+		match <= 1'b1;
+		not_match <= 1'b0;
+	end
+	else if (pstate == sf6) begin
+		match <= 1'b0;
+		not_match <= 1'b1;
+	end
+	else begin
+		match <= 1'b0;
+		not_match <= 1'b0;
+	end
+end
+
+endmodule
+```

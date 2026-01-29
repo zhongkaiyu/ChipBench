@@ -1,0 +1,63 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  wclk
+ - input  rclk
+ - input  wrstn
+ - input  rrstn
+ - input  winc
+ - input  rinc
+ - input  wdata (WIDTH bits)
+ - output wfull
+ - output rempty
+ - output rdata (WIDTH bits)
+
+The module should implement an asynchronous FIFO (First-In-First-Out) buffer
+with parameterizable width and depth. The FIFO uses a dual-port RAM for
+data storage and implements proper read/write pointer management with
+clock domain crossing.
+
+The asynchronous FIFO should work as follows:
+- Write interface: Uses wclk domain with winc (write enable) and wdata
+- Read interface: Uses rclk domain with rinc (read enable) and rdata
+- Reset: wrstn (write domain reset) and rrstn (read domain reset)
+- Status signals: wfull (write full) and rempty (read empty)
+
+FIFO operation:
+- Data is written when winc is high and wfull is low
+- Data is read when rinc is high and rempty is low
+- wfull indicates the FIFO is full and cannot accept more writes
+- rempty indicates the FIFO is empty and has no data to read
+- The FIFO should handle clock domain crossing properly
+
+
+Dual-port RAM module (provided):
+```verilog
+module dual_port_RAM #(parameter DEPTH = 16,
+   parameter WIDTH = 8)(
+ input wclk
+,input wenc
+,input [$clog2(DEPTH)-1:0] waddr
+,input [WIDTH-1:0] wdata
+,input rclk
+,input renc
+,input [$clog2(DEPTH)-1:0] raddr
+,output reg [WIDTH-1:0] rdata
+);
+
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+
+always @(posedge wclk) begin
+if(wenc)
+RAM_MEM[waddr] <= wdata;
+end 
+
+always @(posedge rclk) begin
+if(renc)
+rdata <= RAM_MEM[raddr];
+end 
+
+endmodule  
+```
+

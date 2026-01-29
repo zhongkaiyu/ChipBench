@@ -1,0 +1,47 @@
+
+I would like you to implement a module named TopModule with the following
+interface.
+
+ - input  clk
+ - input  rst
+ - input  signed_div_i
+ - input  opdata1_i (32 bits)
+ - input  opdata2_i (32 bits)
+ - input  start_i
+ - input  annul_i
+ - output result_o (64 bits)
+ - output ready_o
+
+This module implements a division unit that receives two 32-bit operands
+(dividend and divisor) and calculates their quotient and remainder using a
+hardware algorithm based on shifting and subtraction.
+
+The module behavior is as follows:
+
+- When signed_div_i is 1, the division is signed; when it is 0, the division
+  is unsigned. For signed division, the module should automatically perform
+  two's complement conversion on the operands as needed.
+
+- The division operation is initiated when start_i is asserted (start_i = 1).
+
+- During calculation, the module uses a hardware algorithm that performs
+  sequential shifting and subtraction operations to compute the quotient and
+  remainder.
+
+- The annul_i signal can be used to cancel an ongoing division operation
+  mid-calculation. When annul_i is asserted, the current calculation should
+  be terminated.
+
+- The result_o output is a 64-bit value where the upper 32 bits contain the
+  remainder and the lower 32 bits contain the quotient: {remainder, quotient}.
+
+- The ready_o signal indicates when the division result is ready: ready_o = 1
+  means the result is ready and valid, ready_o = 0 means the result is not
+  ready yet.
+
+- When reset is active (rst == 1), the module should initialize to an idle
+  state.
+
+Assume all sequential logic is triggered on the positive edge of the clock.
+The reset signal is active high (rst == 1 means reset is active).
+

@@ -1,0 +1,21 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - output reg [5:0] second
+ - output reg [5:0] minute
+
+The module should implement a simple stopwatch functionality. Assume all
+sequential logic is triggered on the positive edge of the clock. The reset
+input is active low asynchronous, and should reset both counters to 0.
+
+The simple stopwatch should work as follows:
+- The second counter counts from 1 to 60 in a cycle
+- When the second counter reaches 60, it resets to 1 and the minute counter
+  increments by 1
+- The minute counter counts from 0 to 60
+- When the minute counter reaches 60, the stopwatch pauses counting
+- Both counters should reset to 0 when rst_n is low
+

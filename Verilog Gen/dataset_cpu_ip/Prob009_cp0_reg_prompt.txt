@@ -1,0 +1,62 @@
+I would like you to implement a module named `TopModule` with the following interface. 
+
+### Ports:
+- **Inputs:**
+  - `clk`: A clock signal.
+  - `rst`: A reset signal. Active high.
+  - `we_i`: Write enable signal.
+  - `waddr_i [4:0]`: Write address for control registers.
+  - `raddr_i [4:0]`: Read address for control registers.
+  - `data_i [31:0]`: Data input for writing into registers.
+  - `excepttype_i [31:0]`: Exception type input.
+  - `int_i [5:0]`: Hardware interrupt signals.
+  - `current_inst_addr_i [31:0]`: Current instruction address.
+  - `is_in_delayslot_i`: Indicates if the instruction is in a delay slot.
+
+- **Outputs:**
+  - `data_o [31:0]`: Data output from registers based on the read address.
+  - `count_o [31:0]`: A counter register that increments on every clock cycle.
+  - `compare_o [31:0]`: A compare register used to trigger a timer interrupt.
+  - `status_o [31:0]`: Status register containing status flags.
+  - `cause_o [31:0]`: Cause register containing exception and interrupt information.
+  - `epc_o [31:0]`: Exception Program Counter register.
+  - `config_o [31:0]`: Configuration register.
+  - `prid_o [31:0]`: Processor ID register.
+  - `timer_int_o`: Timer interrupt output signal.
+
+### Functionality:
+1. **Reset Behavior**: On reset (`rst`), all output registers should be initialized to their default values:
+   - `count_o` and `compare_o`: 0.
+   - `status_o`: Set `CU[0]` to `1` (indicating CP0 support).
+   - `cause_o`, `epc_o`, `config_o`: 0, with `config_o` having the `BE` bit set to `1` (Big-Endian).
+   - `prid_o`: A value indicating version and processor ID (e.g., `0x00480002`).
+   - `timer_int_o`: De-asserted (0).
+
+2. **Counter and Timer Interrupt**:
+   - The `count_o` register increments every clock cycle.
+   - If `compare_o` is non-zero and `count_o` equals `compare_o`, the `timer_int_o` signal is asserted (set to `1`).
+
+3. **Register Writes**:
+   - When `we_i` is asserted, the module writes `data_i` into one of the following registers based on the `waddr_i` value:
+     - `CP0_REG_COUNT`: Writes to `count_o`.
+     - `CP0_REG_COMPARE`: Writes to `compare_o` and de-asserts `timer_int_o`.
+     - `CP0_REG_STATUS`: Writes to `status_o`.
+     - `CP0_REG_CAUSE`: Modifies specific writable bits of `cause_o`.
+     - `CP0_REG_EPC`: Writes to `epc_o`.
+
+4. **Exception Handling**:
+   - Based on the value of `excepttype_i`, the module updates `epc_o`, `cause_o`, and `status_o` to handle exceptions.
+   - If the instruction causing the exception is in a delay slot (`is_in_delayslot_i`), the module sets the `BD` bit in `cause_o` and adjusts `epc_o` accordingly.
+
+5. **Register Reads**:
+   - The `data_o` output provides the value of the register specified by `raddr_i`.
+
+6. **Interrupt Handling**:
+   - The module updates the `IP` field in `cause_o` with the value of `int_i`.
+
+7. **ERET Handling**:
+   - If the `excepttype_i` input indicates an ERET instruction, the module clears the `EXL` bit in `status_o`.
+
+### Additional Notes:
+- Use descriptive signal names and comments to clarify the functionality.
+- Ensure that the design is synthesizable and adheres to best practices for SystemVerilog coding.

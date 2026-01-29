@@ -1,0 +1,64 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst
+ - input  data
+ - output reg flag
+
+The module should implement a state machine that detects the sequence "1011"
+with overlapping detection capability. The state machine should detect
+multiple occurrences of the sequence even when they overlap. reset is active low.
+
+The sequence detection should work as follows:
+- Monitor the input data stream continuously
+- Detect when the sequence "1011" appears in the input
+- Support overlapping detection: "10110111" should be detected twice
+- Output flag signal should be high for one clock cycle when the sequence
+  is detected, starting from the next clock cycle after detection
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input wire clk  ,
+	input wire rst  ,
+	input wire data ,
+	output reg flag
+);
+//*************code***********//
+    parameter S0=0, S1=1, S2=2, S3=2, S4=4;
+    reg [2:0] state, nstate;
+    
+    always@(posedge clk or negedge rst) begin
+        if(~rst)
+            state <= S0;
+        else
+            state <= nstate;
+    end
+    
+    always@(*) begin
+        if(~rst)
+            nstate <= S0;
+        else
+            case(state)
+                S0     : nstate <= data? S1: S0;
+                S1     : nstate <= data? S1: S2;
+                S2     : nstate <= data? S3: S0;
+                S3     : nstate <= data? S4: S2;
+                S4     : nstate <= data? S1: S2;
+                default: nstate <= S0;
+            endcase
+    end
+    
+    always@(posedge clk or negedge rst) begin
+        if(~rst)
+            flag <= 0;
+        else
+            flag <= state==S4;
+    end
+
+//*************code***********//
+endmodule
+```

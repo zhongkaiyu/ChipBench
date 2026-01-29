@@ -1,0 +1,28 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  A (8 bits)
+ - input  B (8 bits)
+ - input  vld_in
+ - output lcm_out (8 bits)
+ - output mcd_out (8 bits)
+ - output vld_out
+
+Design a sequential circuit that takes two unsigned numbers as input and
+outputs their least common multiple (LCM) and greatest common divisor (GCD).
+The bit width can be determined by parameter DATA_W, which is assumed to be
+8 for this implementation.
+
+The circuit should operate as follows:
+- When vld_in is asserted, the input data A and B are valid and should be
+  processed
+- The circuit computes both the LCM and GCD of the two input numbers
+- When the computation is complete, vld_out should be asserted to indicate
+  that the output data is valid
+- The rst_n signal is an active-low reset signal
+
+Assume all sequential logic is triggered on the positive edge of the clock.
+

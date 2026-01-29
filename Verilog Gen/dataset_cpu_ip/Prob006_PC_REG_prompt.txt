@@ -1,0 +1,39 @@
+
+I would like you to implement a module named TopModule with the following
+interface.
+
+ - input  clk
+ - input  rst
+ - input  stall (6 bits)
+ - input  flush
+ - input  new_pc (32 bits)
+ - input  branch_flag_i
+ - input  branch_target_address_i (32 bits)
+ - output pc (32 bits)
+ - output ce
+
+This module is responsible for updating the program counter (PC) value each
+clock cycle to control the CPU instruction fetch address. It changes the PC
+accordingly during reset, stall, flush, or branch jump operations.
+
+The module behavior is as follows:
+
+- When ce (chip disenable) is invalid (0), pc should be cleared to zero. This
+  typically occurs during reset or system startup.
+
+- When reset is active (rst == 1): disable instruction fetch by setting ce =
+  0.
+
+- After reset ends (rst == 0): enable instruction fetch by setting ce = 1.
+
+- The stall signal has 6 bits, where stall[0] represents whether to fetch a
+  new instruction. When stall[0] is 1, do not fetch a new instruction.
+
+- The flush signal indicates pipeline flush (e.g., when branch prediction is
+  wrong). When flush is asserted, the PC should be updated to new_pc.
+
+- When branch_flag_i indicates a branch jump has occurred, update the PC to
+  branch_target_address_i.
+
+Assume all sequential logic is triggered on the positive edge of the clock.
+

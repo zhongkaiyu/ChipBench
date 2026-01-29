@@ -1,0 +1,51 @@
+
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  Opcode (7 bits)
+ - output ALUSrc
+ - output MemtoReg
+ - output RegWrite
+ - output MemRead
+ - output MemWrite
+ - output ALUOp (2 bits)
+ - output Branch
+ - output JalrSel
+ - output RWSel (2 bits)
+
+The module should implement the controller part for RISC-V. This controller
+generates control signals based on the 7-bit opcode field from the instruction.
+
+The output signals should work as follows:
+
+- ALUSrc: 0 means the second ALU operand comes from the second register file
+  (Read data 2); 1 means the second ALU operand is the sign-extended lower
+  16 bits of the instruction. Notice the first ALU operand is already the first register file.
+
+- MemtoReg: 0 means the value fed to the register Write data input comes from
+  the ALU; 1 means the value fed to the register Write data input comes from
+  the data memory.
+
+- RegWrite: When set, the register on the Write register input is written
+  with the value on the Write data input.
+
+- MemRead: Data memory contents designated by the address input are put on
+  the Read data output.
+
+- MemWrite: Data memory contents designated by the address input are replaced
+  by the value on the Write data input.
+
+- ALUOp: The 2-bit signal encodes the operation type - 00 for LW/SW/AUIPC,
+  01 for Branch, 10 for R-type/I-type, 11 for JAL/LUI.
+
+- Branch: A control signal indicating that the current instruction may change the program counter (PC).
+  It is set to 1 for both conditional branch instructions (BR opcodes like beq, bne, etc.)
+  and for the jump instruction (JAL).
+
+- JalrSel: 0 means JALR is not taken; 1 means JALR is taken.
+
+- RWSel: The 2-bit signal selects the write back source - 00 for Register
+  Write Back, 01 for PC+4 write back (JAL/JALR), 10 for imm-gen write back
+  (LUI), 11 for PC+imm-gen write back (AUIPC).
+

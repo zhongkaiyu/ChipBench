@@ -1,0 +1,79 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  [9:0] money
+ - input  set
+ - input  boost
+ - output reg [9:0] remain
+ - output reg yellow
+ - output reg red
+
+The module should implement a gaming machine billing system with
+prepaid charging functionality. Assume all sequential logic is triggered
+on the positive edge of the clock. The reset input is active low
+asynchronous, and should reset the system to initial state.
+
+The gaming machine billing system should work as follows:
+- Prepaid charging: When set signal is active, the money value is added
+  to the remaining balance (remain)
+- Game modes: Normal mode (1 yuan per minute) and boost mode (2 yuan per
+  minute)
+- Default mode: Normal mode (boost = 0)
+- Boost mode: Activated when boost = 1, charges 2 yuan per clock cycle
+- Balance deduction: Each clock cycle deducts 1 yuan (normal) or 2 yuan
+  (boost) from remain
+- Warning indicators: Yellow light when remain > 0 and < 10, red light
+  when remain < 1 in normal mode, when remain < 2 in boost mode.
+- Continuous charging: Users can recharge during gameplay via set signal
+
+Gaming machine operation:
+- Normal mode: remain decreases by 1 each clock cycle
+- Boost mode: remain decreases by 2 each clock cycle
+- Charging: When set = 1, money value is added to remain
+- Yellow warning: Active when 0 < remain < 10
+- Red warning: Active when remain < 1 for normal mode, remaon < 2 for boost mode
+  (insufficient funds)
+- Reset behavior: Active low reset to initial state
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule
+(
+    input rst_n,
+    input clk,
+    input [9:0]money,
+    input set,
+    input boost,
+    output reg[9:0]remain,
+    output reg yellow,
+    output reg red
+);
+    always@(posedge clk or negedge rst_n) begin
+        if(~rst_n) begin
+            yellow <= 0;
+            red    <= 0;
+        end
+        else begin
+            yellow <= remain<10&&remain;
+            red    <= boost? remain<3: remain<1;
+        end
+    end
+    
+    always@(posedge clk or negedge rst_n) begin
+        if(~rst_n) 
+            remain <= 0;
+        else if(boost)
+            remain <= set     ? remain+money:
+                      remain<2? remain: 
+                      remain-2;
+        else
+            remain <= set     ? remain+money:
+                      remain<1? remain: 
+                      remain-1;
+    end
+endmodule
+```

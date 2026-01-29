@@ -1,0 +1,85 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst
+ - input  data
+ - output reg flag
+
+The module should implement a Moore state machine using a two-stage
+description method. The state machine has five states (S0, S1, S2, S3, S4)
+and transitions based on the input data signal.
+
+The state machine should work as follows:
+- Input signal: data (wire type)
+- Output signal: flag (reg type)
+- Reset: rst is active low
+- Clock: clk for synchronous operation
+
+State transition table:
+                   data
+current state       1     0
+  S0   next state  S1    S0
+  S1               S2    S1
+  S2               S3    S2
+  S3               S4    S3
+  S4               S1    S0
+
+Output logic:
+- When current state is S4, the output flag should be 1
+- For all other states (S0, S1, S2, S3), the output flag should be 0
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+	input wire clk  ,
+	input wire rst  ,
+	input wire data ,
+	output reg flag
+);
+
+    parameter S0 = 'd0, S1 = 'd1, S2 = 'd2, S3 = 'd3 ,S4 = 'd4 ;
+    reg [2:0]	current_state;
+    reg [2:0]	next_state;
+	
+    always@(posedge clk or negedge rst)begin
+        if(rst == 1'b0)begin
+            current_state <= S0;
+        end
+        else begin
+            current_state <= next_state;
+        end
+    end   
+    
+    always@(*)begin
+        case(current_state)
+            S0:begin
+                next_state = data ? S1 : S0;
+				flag = 1'b0; 
+            end
+            S1:begin
+                next_state = data ? S2 : S1;
+				flag = 1'b0;
+            end
+            S2:begin
+                next_state = data ? S3 : S2;
+				flag = 1'b0;
+            end
+            S3:begin
+                next_state = data ? S4 : S3;
+				flag = 1'b0;
+            end
+			S4:begin
+			    next_state = data ? S1 : S1;
+				flag = 1'b1;
+			end
+            default:begin  
+				next_state = S0;
+				flag = 1'b0;				
+			end
+        endcase
+    end
+
+endmodule
+```

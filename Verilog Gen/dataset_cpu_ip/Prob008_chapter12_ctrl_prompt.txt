@@ -1,0 +1,42 @@
+I would like you to implement a module named `TopModule` with the following interface. All input and output ports are one bit unless otherwise specified.
+
+- **Input ports:**
+  - `rst`: Active-high reset signal.
+  - `excepttype_i [31:0]`: Exception type input.
+  - `cp0_epc_i [31:0]`: Input for EPC (program counter) from CP0, used during exceptions.
+  - `stallreq_from_if`: Stall request signal from the instruction fetch stage.
+  - `stallreq_from_id`: Stall request signal from the instruction decode stage.
+  - `stallreq_from_ex`: Stall request signal from the execution stage.
+  - `stallreq_from_mem`: Stall request signal from the memory stage.
+
+- **Output ports:**
+  - `new_pc [31:0]`: Output for the new program counter value, updated during exceptions.
+  - `flush`: Signal to flush the pipeline.
+  - `stall [5:0]`: Stall control signal for the pipeline.
+
+The module should implement the following functionality:
+1. If the reset signal (`rst`) is active, all outputs should be reset:
+   - `stall` should be set to `6'b000000`.
+   - `flush` should be set to `0`.
+   - `new_pc` should be set to `0`.
+
+2. If an exception occurs (`excepttype_i` is not zero), the pipeline should be flushed (`flush = 1`), and the `stall` signal should be cleared (`stall = 6'b000000`). The `new_pc` output should be set to the appropriate exception vector based on the type of exception:
+   - Interrupt (`excepttype_i == 32'h00000001`): Set `new_pc` to `32'h00000020`.
+   - System call (`excepttype_i == 32'h00000008`): Set `new_pc` to `32'h00000040`.
+   - Invalid instruction (`excepttype_i == 32'h0000000a`): Set `new_pc` to `32'h00000040`.
+   - Trap (`excepttype_i == 32'h0000000d`): Set `new_pc` to `32'h00000040`.
+   - Arithmetic overflow (`excepttype_i == 32'h0000000c`): Set `new_pc` to `32'h00000040`.
+   - ERET (`excepttype_i == 32'h0000000e`): Set `new_pc` to the value of `cp0_epc_i`.
+
+3. If no exception occurs, the module should handle stall requests from different stages:
+   - If `stallreq_from_mem` is asserted, set `stall` to `6'b011111` and do not flush the pipeline.
+   - If `stallreq_from_ex` is asserted, set `stall` to `6'b001111` and do not flush the pipeline.
+   - If `stallreq_from_id` is asserted, set `stall` to `6'b000111` and do not flush the pipeline.
+   - If `stallreq_from_if` is asserted, set `stall` to `6'b000111` and do not flush the pipeline.
+
+4. If no stall request or exception occurs, the outputs should remain in their default state:
+   - `stall = 6'b000000`
+   - `flush = 0`
+   - `new_pc = 0`
+
+Make sure to implement this functionality in a clean and modular way, using combinational or sequential logic as appropriate.

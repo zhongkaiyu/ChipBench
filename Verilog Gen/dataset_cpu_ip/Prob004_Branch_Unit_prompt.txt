@@ -1,0 +1,35 @@
+
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  Cur_PC     (9 bits)
+ - input  Imm        (32 bits)
+ - input  JalrSel
+ - input  Branch
+ - input  AluResult  (32 bits)
+ - output PC_Imm     (32 bits)
+ - output PC_Four    (32 bits)
+ - output BrPC       (32 bits)
+ - output PcSel
+
+The module should be purely combinational and implement the basic branch
+unit functions:
+
+ - PC_Imm: The PC-relative target computed as Cur_PC + Imm.
+   Treat Cur_PC as an unsigned PC value zero-extended to 32 bits before
+   addition. Imm is a 32-bit signed immediate; perform a 32-bit addition.
+
+ - PC_Four: The sequential PC computed as Cur_PC + 32'd4 (with Cur_PC
+   zero-extended to 32 bits prior to the addition).
+
+ - BrPC: The selected branch/jump target address. If JalrSel=1, choose
+   AluResult (e.g., JALR target). If JalrSel=0, choose PC_Imm (e.g.,
+   branch or JAL target). Otherwise, we just set zero.
+
+ - PcSel: Set to 1 when a control-flow change is taken; otherwise 0.
+   For this problem, use the given Branch input directly as the take/not-take
+   decision: PcSel = Branch. (We do not model branch condition evaluation
+   here.)
+
+

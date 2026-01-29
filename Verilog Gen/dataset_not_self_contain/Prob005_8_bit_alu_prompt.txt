@@ -1,0 +1,120 @@
+
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  in_A (8 bits)
+ - input  in_B (8 bits)
+ - input  in_operation (2 bits)
+ - output out_c (8 bits)
+
+This project implements a concise 8-bit Arithmetic Logic Unit (ALU). It
+receives two 8-bit input operands (in_A and in_B) and a 2-bit control signal
+(in_operation), and through the combination of internal bitwise AND, bitwise
+OR, adder (ADDER), and multiplexer (MUX) modules, it implements four basic
+operations: A AND B, A OR B, A + B, and A - B. The design structure is clear
+and modular, with each submodule responsible for a single function, and
+finally the top-level ALU module selects the corresponding operation result
+based on the control signal and outputs it to out_c. This design approach not
+only facilitates understanding and debugging but also reflects the hierarchical
+design philosophy in hardware systems.
+
+Port descriptions:
+
+Input ports:
+- in_A (8 bits): The first operand of the ALU. It is an 8-bit binary number,
+  such as 8'b10101100. It is used in all operations (AND, OR, addition,
+  subtraction).
+
+- in_B (8 bits): The second operand. It is also an 8-bit binary number, such
+  as 8'b00111010. It participates in all calculations together with in_A.
+
+- in_operation (2 bits): This is the control signal that tells the ALU which
+  operation to perform. These 2 bits can be viewed as an opcode, where each
+  combination corresponds to a different operation:
+  - 00 → Perform bitwise AND (A AND B)
+  - 01 → Perform bitwise OR (A OR B)
+  - 10 → Perform addition (A + B)
+  - 11 → Perform subtraction (A - B)
+
+  The control signal structure:
+  - The low bit in_operation[0] simultaneously controls the OR/AND selection
+    and the adder's add/subtract mode.
+  - The high bit in_operation[1] controls whether the output is a logic
+    operation result or an arithmetic operation result.
+
+Output ports:
+- out_c (8 bits): This is the final output result of the ALU. Its value
+  depends on the in_operation setting:
+  - When in_operation = 00 → Output A AND B
+  - When in_operation = 01 → Output A OR B
+  - When in_operation = 10 → Output A + B
+  - When in_operation = 11 → Output A - B
+
+  Therefore, out_c may be either a logic result or an arithmetic result.
+
+
+The following submodules are already provided and should be included as submodules in
+your design:
+- bit_8_AND: Performs bitwise AND operation on two 8-bit inputs
+- bit_8_OR: Performs bitwise OR operation on two 8-bit inputs
+- bit_8_ADDER: Performs addition or subtraction on two 8-bit inputs
+- mux_2X1: A 2-to-1 multiplexer that selects between two 8-bit inputs
+You need to add below code to implementation without any edit.
+provided: 
+```
+//AND
+module bit_8_AND(aANDb,A,B);
+	output reg [7:0] aANDb;
+	input [7:0]A,B;
+	always @(*)
+		begin
+			aANDb <= A&B;
+		end
+endmodule
+
+//OR
+module bit_8_OR(
+	output reg [7:0]aORb,
+	input [7:0]A,
+	input [7:0]B
+);
+	always @(*)
+		begin
+			aORb <= A|B;
+		end
+endmodule
+
+//8 bit adder
+module bit_8_ADDER(
+	output reg [7:0]aPlusb,
+	input [7:0]A,
+	input [7:0]B,
+	input carry_in);
+	reg [7:0]BB;
+	always @(*)
+		begin
+			if(carry_in == 1)
+				BB <= ~B;
+			else
+				BB <= B;
+         aPlusb <= A + BB;            
+		end
+endmodule
+
+//2 X 1 multiplxer
+module mux_2X1(
+	output reg [7:0]O,
+	input [7:0]I0,
+	input [7:0]I1,
+	input sel);
+
+	always @(*)
+		begin
+			if(sel == 0)
+				O <= I0;
+			else
+				O <= I1;
+		end
+endmodule
+```

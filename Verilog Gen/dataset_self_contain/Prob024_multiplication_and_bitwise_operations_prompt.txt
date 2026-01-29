@@ -1,0 +1,10 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  A (8 bits)
+ - output B (16 bits)
+
+Design a computational unit circuit that multiplies A[7:0] by the constant
+0xFB (binary 11111011). You should implement this using as few resources
+as possible.

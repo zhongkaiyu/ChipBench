@@ -1,0 +1,108 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  data
+ - input  data_valid
+ - output match
+
+The module should implement a sequence detection circuit that detects the
+sequence "0110" in the input data stream. The data_valid signal indicates
+when the input data is valid and should be considered for sequence detection.
+When data_valid is high, the current input data is valid and participates
+in sequence detection. When data_valid is low, the current input data is
+invalid and should be ignored (not considered for sequence detection).
+
+The sequence detection should work as follows:
+- Use state machine and update it sequentially
+- Monitor the input data stream when data_valid is high
+- Detect when the sequence "0110" appears in the valid data
+- Output match signal should be high when the sequence "0110" is detected
+- Output match signal should be low at all other times
+
+Output Logic for match signal:
+- When reset is active (rst_n = 0): match = 0
+- When reset is inactive (rst_n = 1) AND sequence is 0110: match = 1
+- When reset is inactive (rst_n = 1) AND sequence is NOT 0110: match = 0
+
+Based on the problem description above, the code below has bug, please fix that:
+```
+module TopModule(
+	input clk,
+	input rst_n,
+	input data,
+	input data_valid,
+	output reg match
+	);
+
+
+reg [3:0] pstate,nstate;
+
+parameter idle=4'd0,
+		  s1_d0=4'd1,
+          s2_d01=4'd2,
+          s3_d011=4'd3,
+          s4_d0110=4'd4;
+
+always @(posedge clk or negedge rst_n)
+begin
+    if(!rst_n)
+        pstate<=idle;
+    else
+        pstate<=nstate;
+end
+
+always @(pstate or data or data_valid)
+begin
+    case(pstate)
+        idle:
+            if(data_valid && !data)
+                nstate=s1_d0;			//第一位匹配
+            else
+                nstate=idle;
+        s1_d0:
+            if (data_valid)
+				begin	
+					if (data) nstate = s2_d01;		//数据有效且为1，即前两位01匹配，下一状态为s2_d01
+					else nstate = s1_d0;			//数据有效但为0，即只有第一位0匹配，下一状态为s1_d0
+				end
+			else nstate = s1_d0;					//数据无效，保持在s1_d0
+        s2_d01:
+            if (data_valid)
+				begin	
+					if (data) nstate = s3_d011;		//数据有效且为1，即前三位011匹配，下一状态为s3_d011
+					else nstate = s1_d0;			//数据有效但为0，即只有第一位0匹配，下一状态为s1_d0
+				end
+			else nstate = s2_d01;					//数据无效，保持在s2_d01
+        s3_d011:
+            if (data_valid)
+				begin	
+					if (!data) nstate = s4_d0110;		//数据有效且为0，即前四位0110匹配，下一状态为s4_d0110
+					else nstate = idle;					//数据有效但为1，即不匹配，下一状态为idle
+				end
+			else nstate = s3_d011;					//数据无效，保持在s3_d011
+        s4_d0110:
+            if (data_valid)
+				begin	
+					if (!data) nstate = s1_d0;		//数据有效且为0，即匹配目标序列的第一位0，下一状态为s1_d0
+					else nstate = idle;			//数据有效但为1，不匹配目标序列，下一状态为idle
+				end
+			else nstate = idle;					//数据无效，下一状态为idle
+        default:
+            nstate=idle;
+        endcase
+end
+
+always @(posedge clk or negedge rst_n) begin
+	if (!rst_n)
+		match <= 1'b0;
+	else if (pstate == s4_d0110)   // 进入状态s4_d0110表示四位数据都匹配，把匹配指示信号match拉高
+		match <= 1'b1;
+	else
+		match <= 1'b0;
+end
+
+endmodule
+```

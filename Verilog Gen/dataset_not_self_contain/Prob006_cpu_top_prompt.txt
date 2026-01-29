@@ -1,0 +1,277 @@
+
+I would like you to implement a module named TopModule with the following
+interface.
+
+ - output readM
+ - output address (16 bits)
+ - inout  data (16 bits)
+ - input  inputReady
+ - input  reset_n
+ - input  clk
+ - output num_inst (16 bits)
+ - output output_port (16 bits)
+
+This CPU is a simplified 16-bit processor model. It contains basic stages
+including Instruction Fetch, Decode, Execute, Memory Access, and Write Back.
+The Control module generates various control signals to coordinate data flow
+between the Register File (RF), Arithmetic Logic Unit (ALU), and memory. Each
+clock cycle, the CPU updates the program counter (PC) based on the current
+instruction (input from memory via the data bus), and executes arithmetic,
+logic, jump, or store operations. When encountering the special WWD
+instruction, it outputs register values to output_port, implementing a
+"display result" functionality.
+
+Port descriptions:
+
+Input ports:
+- inputReady: Indicates that data is ready from the input port
+- reset_n: Active-low RESET signal
+- clk: Clock signal
+
+Output ports:
+- readM: Read from memory signal
+- address: Current address for data (16 bits)
+- num_inst: Number of instructions during execution (16 bits), for debugging/testing
+- output_port: Used for WWD instruction to output register values (16 bits)
+
+Inout ports:
+- data: Data being input or output (16 bits)
+
+Instruction Set:
+The CPU supports the following instructions:
+R-type instructions (function field determines operation):
+- ADD (FUNC_ADD = 0): Register addition: rd = rs + rt
+- SUB (FUNC_SUB = 1): Register subtraction: rd = rs - rt
+- AND (FUNC_AND = 2): Bitwise AND: rd = rs & rt
+- ORR (FUNC_ORR = 3): Bitwise OR: rd = rs | rt
+- NOT (FUNC_NOT = 4): Bitwise NOT: rd = ~rs
+- TCP (FUNC_TCP = 5): Two's complement: rd = -rs
+- SHL (FUNC_SHL = 6): Shift left by 1: rd = rs << 1
+- SHR (FUNC_SHR = 7): Arithmetic shift right by 1: rd = rs >>> 1
+- JPR (FUNC_JPR = 25): Jump to register address: PC = rs
+- JRL (FUNC_JRL = 26): Jump to register address and save return address:
+  rd = PC + 1; PC = rs
+- RWD (FUNC_RWD = 27): Read from input port to register: reg = input port
+- WWD (FUNC_WWD = 28): Write register value to output port: output port = reg
+- HLT (FUNC_HLT = 29): Halt CPU execution
+- ENI (FUNC_ENI = 30): Enable interrupt
+- DSI (FUNC_DSI = 31): Disable interrupt
+
+I-type instructions (opcode determines operation):
+- ADI (OPCODE_ADI = 4): Add immediate: rt = rs + imm
+- ORI (OPCODE_ORI = 5): Bitwise OR immediate: rt = rs | imm
+- LHI (OPCODE_LHI = 6): Load immediate to high 8 bits: rt = {imm, 8'b0}
+- LWD (OPCODE_LWD = 7): Load from memory: rt = MEM[rs + imm]
+- SWD (OPCODE_SWD = 8): Store to memory: MEM[rs + imm] = rt
+- BNE (OPCODE_BNE = 0): Branch if not equal: if(rs != rt) PC += imm
+- BEQ (OPCODE_BEQ = 1): Branch if equal: if(rs == rt) PC += imm
+- BGZ (OPCODE_BGZ = 2): Branch if greater than zero: if(rs > 0) PC += imm
+- BLZ (OPCODE_BLZ = 3): Branch if less than zero: if(rs < 0) PC += imm
+- JMP (OPCODE_JMP = 9): Unconditional jump: PC = target
+- JAL (OPCODE_JAL = 10): Jump and link: R3 = PC + 1; PC = target
+
+CPU Execution Flow:
+
+The CPU execution follows these stages:
+
+1. Instruction Fetch:
+   - When PC updates, assert readM=1 and set address=PC
+   - Wait for inputReady to become high
+   - When inputReady is asserted, read the instruction from the data bus
+   - Save the instruction for decoding
+
+2. Decode:
+   - Extract opcode (bits [15:12]) and function (bits [5:0]) from instruction
+   - Control module generates control signals based on opcode and function
+   - RF module reads source registers (rs and rt) based on instruction fields
+
+3. Execute:
+   - ALU performs computation based on ALUOp control signal
+   - For immediate instructions, sign-extend the immediate value
+   - ALU outputs result and branch condition (bcond)
+
+4. Memory Access:
+   - If instruction is LWD (Load Word) or SWD (Store Word):
+     * Set address to ALUResult (calculated memory address)
+     * Assert readM (for LWD) or MemWrite (for SWD)
+     * Wait for inputReady to become high
+     * For LWD: read data from data bus and save to dataReg
+     * For SWD: write ReadData2 to data bus
+
+5. Write Back:
+   - If RegWrite=1, write result to register file at next clock edge
+   - For LWD: write dataReg to destination register
+   - For other instructions: write ALUResult to destination register
+   - Destination register is determined by RegDst control signal
+
+6. PC Update:
+   - Calculate nextPC based on control signals:
+     * If Jump: nextPC = {PC[15:12], instruction[11:0]}
+     * Else if Branch & bcond: nextPC = PC + sign-extended(immediate)
+     * Else: nextPC = PC + 1
+   - Update PC to nextPC at next clock edge
+
+7. Output Stage (WWD instruction):
+   - If OpenPort=1 (WWD instruction), output ReadData1 to output_port
+   - Use: assign output_port = OpenPort ? ReadData1 : 16'bz;
+
+The following submodules are already provided and should be instantiated and included in
+your design, please do not edit this part:
+- Control: Generates control signals based on instruction opcode and function
+  fields
+- RF: Register File module for reading and writing register values
+- ALU: Arithmetic Logic Unit module for performing arithmetic and logic
+  operations
+provided:
+```
+`define FUNC_ADD 6'd0
+`define FUNC_SUB 6'd1
+`define FUNC_AND 6'd2
+`define FUNC_ORR 6'd3
+`define FUNC_NOT 6'd4
+`define FUNC_TCP 6'd5
+`define FUNC_SHL 6'd6
+`define FUNC_SHR 6'd7
+`define FUNC_RWD 6'd27
+`define FUNC_WWD 6'd28
+`define FUNC_JPR 6'd25
+`define FUNC_JRL 6'd26
+`define FUNC_HLT 6'd29
+`define FUNC_ENI 6'd30
+`define FUNC_DSI 6'd31
+
+`define OPCODE_ADI 4'd4
+`define OPCODE_ORI 4'd5
+`define OPCODE_LHI 4'd6
+`define OPCODE_LWD 4'd7
+`define OPCODE_SWD 4'd8
+`define OPCODE_BNE 4'd0
+`define OPCODE_BEQ 4'd1
+`define OPCODE_BGZ 4'd2
+`define OPCODE_BLZ 4'd3
+`define OPCODE_JMP 4'd9
+`define OPCODE_JAL 4'd10
+`define OPCODE_R   4'd15
+
+module Control(
+    input [3:0] opcode,
+    input [5:0] func,
+    output RegDst,
+    output Jump,
+    output Branch,
+    output MemRead,
+    output MemtoReg,
+    output reg [3:0] ALUOp,
+    output MemWrite,
+    output ALUSrc,
+    output RegWrite,
+    output OpenPort
+    );
+    
+    /* 
+    Receives opcode and function code of an instruction, and generates control signals.
+    RegDst  : Chooses RF write address (rt or rd)
+    Jump    : Whether this instruction is a jump
+    Branch  : Whether this instruction is a branch
+    MemRead : Whether we should read data memory
+    MemtoReg: Chooses what to write to RF (ALU result or data read from memory)
+    ALUOp   : Controls ALU operation. Directly connected to the input OP of the ALU. (There is no ALU control module in this CPU)
+    MemWrite: Whether we should write data to memory
+    ALUSrc  : Chooses ALU second input (Second RF read data or sign-extended immediate)
+    RegWrite: Whether we should write data to RF
+    OpenPort: Wheter to open output_port of CPU
+    */
+    
+    assign RegDst = (opcode==`OPCODE_R);
+    assign Jump = (opcode==`OPCODE_JMP || opcode==`OPCODE_JAL);
+    assign Branch = (opcode==`OPCODE_BEQ || opcode==`OPCODE_BNE || opcode==`OPCODE_BGZ || opcode==`OPCODE_BLZ);
+    assign MemRead = (opcode==`OPCODE_LWD || opcode==`OPCODE_SWD);
+    assign MemtoReg = (opcode==`OPCODE_LWD);
+    assign MemWrite = (opcode==`OPCODE_SWD);
+    assign ALUSrc = !(opcode==`OPCODE_R || opcode==`OPCODE_BEQ || opcode==`OPCODE_BNE);
+    assign RegWrite = !(opcode==`OPCODE_SWD || opcode==`OPCODE_BEQ || opcode==`OPCODE_BNE || opcode==`OPCODE_BGZ || opcode==`OPCODE_BLZ || opcode==`OPCODE_JMP || func==`FUNC_WWD);
+    assign OpenPort = (opcode==`OPCODE_R & func==`FUNC_WWD);
+    
+    always @(*) begin
+        if (opcode==`OPCODE_R & func<8) ALUOp = func[3:0];
+        else if (opcode==`OPCODE_ADI || opcode==`OPCODE_LWD || opcode==`OPCODE_SWD) ALUOp = 0;
+        else if (opcode==`OPCODE_ORI) ALUOp = 3;
+        else if (opcode==`OPCODE_LHI) ALUOp = 8;
+        else if (opcode==`OPCODE_BNE) ALUOp = 9;
+        else if (opcode==`OPCODE_BEQ) ALUOp = 10;
+        else if (opcode==`OPCODE_BGZ) ALUOp = 11;
+        else if (opcode==`OPCODE_BLZ) ALUOp = 12;
+        else ALUOp = 15;
+    end
+    
+endmodule
+
+module RF(
+    input write,
+    input clk,
+    input reset_n,
+    input [1:0] addr1,
+    input [1:0] addr2,
+    input [1:0] addr3,
+    output [15:0] data1,
+    output [15:0] data2,
+    input [15:0] data3
+    );
+    
+    reg [63:0] register;
+    /*
+    register[63:48] == register[16*3+: 16] (addr is 2'b11)
+    register[47:32] == register[16*2+: 16] (addr is 2'b10)
+    register[31:16] == register[16*1+: 16] (addr is 2'b01)
+    register[15: 0] == register[16*0+: 16] (addr is 2'b00)
+    */
+    
+    always @(posedge clk, negedge reset_n) begin
+        // Asynchronous active low reset -> This used to be Synchronous reset; modified to asynchronous for Project 4.
+    	if (!reset_n) register <= 64'b0;
+    	// Synchronous data write
+    	else if (write) register[16*addr3+: 16] <= data3;
+    end
+    
+    // Asynchronous data read
+    assign data1 = register[16*addr1+: 16];
+    assign data2 = register[16*addr2+: 16];
+    
+endmodule
+
+module ALU(
+    input signed [15:0] A,
+    input signed [15:0] B,
+    input [3:0] OP,
+    output reg [15:0] C,
+    output bcond
+    );
+    
+    always @(*) begin
+        case (OP)
+            0:  C = A + B;          // ADD, ADI, LWD, SWD
+            1:  C = A - B;          // SUB
+            2:  C = A & B;          // AND
+            3:  C = A | B;          // ORR, ORI
+            4:  C = ~A;             // NOT
+            5:  C = ~A + 1'b1;      // TCP
+            6:  C = A << 1;         // SHL
+            7:  C = A >>> 1;        // SHR
+            8:  C = {B[7:0], 8'b0}; // LHI
+            9:  C = A - B;          // BNE
+            10: C = A - B;          // BEQ
+            11: C = A;              // BGZ
+            12: C = A;              // BLZ
+            default: C = 16'bz;
+        endcase
+    end
+    
+    // Using assign, C and bcond change at the same time.
+    // The timing would have been different if they were inside a single always block. 
+    assign bcond = OP==9  ? (C!=0) :        // BNE
+                   OP==10 ? (C==0) :        // BEQ
+                   OP==11 ? (C>0)  :        // BGZ                
+                   OP==12 ? (C<0)  : 0;     // BLZ
+    
+endmodule
+```

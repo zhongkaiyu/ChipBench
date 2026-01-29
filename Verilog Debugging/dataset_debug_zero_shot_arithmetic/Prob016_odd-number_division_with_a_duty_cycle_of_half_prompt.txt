@@ -1,0 +1,82 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk_in
+ - input  rst
+ - output clk_out7
+
+The module should implement a clock divider that produces a 7:1 frequency
+division with a 50% duty cycle output. reset is active low.
+
+The clock divider should work as follows:
+- Input clock: clk_in (reference clock signal)
+- Output clock: clk_out7 (divided clock signal)
+- Division ratio: 7:1 (output frequency is 1/7 of input frequency)
+- Duty cycle: 50% (output is high for half the period, low for half the period)
+
+Clock division behavior:
+- The output clk_out7 should toggle at 1/7 the frequency of clk_in
+- The output should maintain a 50% duty cycle (equal high and low times)
+- The output should be synchronized to the input clock clk_in
+- The division should be continuous and stable
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule
+  #(parameter N = 7)
+   (
+    input    wire  rst ,
+    input    wire  clk_in,
+    output   wire  clk_out7
+    );
+
+
+
+   reg [3:0]            cnt ;
+   always @(posedge clk_in or negedge rst) begin
+      if (!rst) begin
+         cnt    <= 'b0 ;
+      end
+      else if (cnt == N-1) begin
+         cnt    <= 'b0 ;
+      end
+      else begin
+         cnt    <= cnt + 1'b1 ;
+      end
+   end
+
+   reg                  clkp ;
+   always @(posedge clk_in or negedge rst) begin
+      if (!rst) begin
+         clkp <= 1'b0 ;
+      end
+      else if (cnt == (N>>1)) begin 
+        clkp <= 1 ;
+      end
+      else if (cnt == N-1) begin 
+        clkp <= 0 ;
+      end
+   end
+  
+
+   reg                  clkn ;
+   always @(negedge clk_in or negedge rst) begin
+      if (!rst) begin
+         clkn <= 1'b0 ;
+      end
+      else if (cnt == (N>>1) ) begin 
+        clkn <= 1 ;
+      end
+      else if (cnt == N-1) begin 
+        clkn <= 0 ;
+      end
+   end
+
+
+   assign clk_out7 = clkp & clkn ;
+
+
+endmodule
+```

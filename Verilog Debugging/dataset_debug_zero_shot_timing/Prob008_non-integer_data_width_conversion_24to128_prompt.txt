@@ -1,0 +1,79 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  valid_in
+ - input  data_in (24 bits)
+ - output reg valid_out
+ - output reg data_out (128 bits)
+
+The module should implement a data width conversion circuit that converts
+24-bit input data into 128-bit output data. The circuit uses valid-only
+handshake mechanism for both input and output interfaces.
+
+The data width conversion should work as follows:
+- Input interface: Uses valid-only handshake mechanism
+  - valid_in indicates the validity of input data_in
+- Output interface: Uses valid-only handshake mechanism
+  - valid_out indicates the validity of output data_out
+
+Data conversion process:
+- The module receives 24-bit input data_in when valid_in is high
+- The module accumulates multiple 24-bit inputs to form a 128-bit output
+- The first received 24-bit data should be placed in the high bits of data_out
+- The last received 24-bit data should be placed in the low bits of data_out
+- After accumulating enough data to form a complete 128-bit word, the module
+  outputs data_out with valid_out asserted
+
+Based on the problem description above, the code below has bug, please fix that:
+```
+module TopModule(
+	input 				clk 		,   
+	input 				rst_n		,
+	input				valid_in	,
+	input	[23:0]		data_in		,
+ 
+ 	output	reg			valid_out	,
+	output  reg [127:0]	data_out
+);
+    reg [3:0]   cnt;
+    reg [127:0] data_lock;
+    
+    always@(posedge clk or negedge rst_n) begin
+        if(~rst_n)
+            cnt <= 0;
+        else
+            cnt <= ~valid_in? cnt:cnt+1;
+    end
+    
+    always @(*) begin
+      if (~rst_n)
+        valid_out = 1'b0;
+      else
+        valid_out = ((cnt == 5) || (cnt == 10) || (cnt == 15)) && valid_in;
+    end
+
+    
+    always@(posedge clk or negedge rst_n) begin
+        if(~rst_n)
+            data_lock <= 0;
+        else
+            data_lock <= valid_in? {data_lock[103:0], data_in}: data_lock;
+    end
+    
+    always@(posedge clk or negedge rst_n) begin
+        if(~rst_n)
+            data_out <= 0;
+        else if(cnt==5)
+            data_out <= valid_in? {data_lock[119:0], data_in[23:16]}: data_out;
+        else if(cnt==10)
+            data_out <= valid_in? {data_lock[111:0], data_in[23: 8]}: data_out;
+        else if(cnt==15)
+            data_out <= valid_in? {data_lock[103:0], data_in[23: 0]}: data_out;
+        else
+            data_out <= data_out;
+    end
+endmodule
+```

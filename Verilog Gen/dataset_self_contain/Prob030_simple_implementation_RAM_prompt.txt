@@ -1,0 +1,26 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  read_en
+ - input  write_en
+ - input  read_addr (8 bits)
+ - input  write_addr (8 bits)
+ - input  write_data (4 bits)
+ - output read_data (4 bits)
+
+Implement a dual-port RAM with depth of 8 and data width of 4 bits. All
+data should be initialized to 0000. The RAM has two separate ports: one
+for reading data and one for writing data. Read and write operations can
+be performed simultaneously.
+
+When the read enable signal read_en is asserted, the module should read
+data from the location specified by read_addr and output it on read_data.
+When the write enable signal write_en is asserted, the module should write
+write_data to the location specified by write_addr.
+
+The rst_n signal is an active-low asynchronous reset signal. Assume all
+sequential logic is triggered on the positive edge of the clock.
+

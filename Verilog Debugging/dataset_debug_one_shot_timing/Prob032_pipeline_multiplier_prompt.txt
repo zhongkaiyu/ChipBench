@@ -1,0 +1,70 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  [3:0] mul_a
+ - input  [3:0] mul_b
+ - output reg [7:0] mul_out
+
+The module should implement a 4-bit unsigned pipelined multiplier. Assume all
+sequential logic is triggered on the positive edge of the clock. The reset
+input is active low asynchronous, and should reset the multiplier to 0.
+
+The pipelined multiplier should work as follows:
+- The multiplier performs unsigned multiplication of two 4-bit inputs (mul_a and mul_b)
+- The result is an 8-bit output (mul_out) representing the product
+- The multiplication is implemented using a pipelined architecture for improved
+  performance and throughput
+- The pipeline allows new inputs to be processed every clock cycle while
+  previous multiplications are still being completed
+- When rst_n is low, the multiplier should reset to 0
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule#(
+	parameter size = 4
+)(
+	input 						clk 		,   
+	input 						rst_n		,
+	input	[size-1:0]			mul_a		,
+	input	[size-1:0]			mul_b		,
+ 
+ 	output	reg	[size*2-1:0]	mul_out		
+);
+    //parameter 
+    parameter N = size * 2;
+    //defination
+    wire [N - 1 : 0] temp [0 : 3];
+    
+    reg [N - 1 : 0] adder_0;
+    reg [N - 1 : 0] adder_1;
+    
+    //output 
+    genvar i;
+    generate
+        for(i = 0; i < 4; i = i + 1)begin : loop
+            assign temp[i] = mul_b[i] ? mul_a << i : 'd0;
+        end
+    endgenerate
+    
+    always@(posedge clk or negedge rst_n)begin
+        if(!rst_n) adder_0 <= 'd0;
+        else adder_0 <= temp[0] + temp[1];
+    end
+    
+    always@(posedge clk or negedge rst_n)begin
+        if(!rst_n) adder_1 <= 'd0;
+        else adder_1 <= temp[2] + temp[3];
+    end
+    
+    always @(*) begin
+      if (!rst_n)
+        mul_out = 'd0;
+      else
+        mul_out = adder_0 + adder_1;
+    end
+endmodule
+```

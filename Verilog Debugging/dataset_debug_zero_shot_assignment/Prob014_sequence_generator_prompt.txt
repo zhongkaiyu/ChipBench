@@ -1,0 +1,44 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - output data
+
+Implement a module that continuously outputs the sequence 001011 in a
+cyclic manner.
+
+The circuit should generate the pattern as follows:
+- Output '0', then '0', then '1', then '0', then '1', then '1'
+- After outputting the last '1', the sequence repeats from the beginning
+- The sequence 001011 repeats indefinitely
+
+The rst_n signal is an active-low reset signal. When reset is asserted,
+the sequence should restart from the beginning. Assume all sequential
+logic is triggered on the positive edge of the clock.
+
+
+Based on the problem description above, the code below in TopModule has bug, please fix that:
+```
+module TopModule(
+    input clk,
+    input rst_n,
+    output reg data
+    );
+     
+    reg [5:0] q;
+     
+    always@(posedge clk or negedge rst_n)
+        if (!rst_n)
+            q <= 6'b010110;
+        else
+            q <= {q[4:0],q[5]};
+     
+    always@(posedge clk or negedge rst_n)
+        if (!rst_n)
+            data <= 1'd0;
+        else
+            data <= q[5];
+endmodule
+```

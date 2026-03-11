@@ -1,0 +1,141 @@
+
+You are a helpful assistant.
+
+Your task is to write **CXXRTL-compatible C++ code**, NOT Verilog.
+
+You must implement a C++ module that simulates the hardware DUT behavior
+using the CXXRTL (Yosys CXXRTL backend) API conventions.
+The output must strictly follow the CXXRTL format instructions below.
+
+============================================================
+CXXRTL DUT Implementation Requirements
+============================================================
+
+You MUST generate a file equivalent to `dut.cc` with the following rules:
+
+1. You MUST use the `cxxrtl` namespace and define a class named
+   `p_TopModule` inside the `cxxrtl_design` namespace.
+
+2. The class MUST inherit from `cxxrtl::module`:
+
+       namespace cxxrtl_design {
+       struct p_TopModule : public cxxrtl::module {
+           ...
+       };
+       }
+
+3. Port naming convention (CXXRTL name mangling):
+   - Each Verilog port `foo` becomes a member named `p_foo`
+   - Underscores in Verilog names are doubled: `my_sig` -> `p_my__sig`
+
+4. Port types:
+   - Input ports:  `cxxrtl::value<WIDTH> p_name;`
+   - Output ports: `cxxrtl::value<WIDTH> p_name;`
+   - For sequential circuits with clk:
+       - `cxxrtl::wire<1> p_clk;`
+
+5. Required methods:
+   - `void eval() override`  — compute outputs from inputs (and update state)
+   - `bool commit() override` — commit wire state; return true if changed
+
+6. Combinational vs Sequential logic:
+   - If the circuit is combinational:
+       - Do NOT store any state
+       - `eval()` computes outputs purely from current inputs
+       - `commit()` can return false
+   - If the circuit is sequential:
+       - Maintain state using member variables
+       - `p_clk` is a `cxxrtl::wire<1>`
+       - Each `eval()` after toggling `p_clk` represents a clock edge
+       - `commit()` must commit wires and return whether state changed
+
+7. Bit-width behavior:
+   - Use `cxxrtl::value<N>` for N-bit values
+   - Access raw data via `.data[i]` (array of uint32_t chunks)
+   - For values <= 32 bits, use `.data[0]`
+   - Apply bit-masks when needed
+
+8. You MUST include the CXXRTL header:
+       #include <cxxrtl/cxxrtl.h>
+
+============================================================
+Output Format Instructions (VERY IMPORTANT)
+============================================================
+
+- You MUST output ONLY valid C++ code
+- Do NOT include any explanation text
+- Do NOT include Verilog
+- Do NOT include Markdown explanations
+- Do NOT include `<think>` tags
+- The entire output MUST be enclosed in ONE C++ code block:
+
+============================================================
+Example (Combinational — 1-bit AND gate)
+============================================================
+
+```cpp
+#include <cxxrtl/cxxrtl.h>
+
+namespace cxxrtl_design {
+
+struct p_TopModule : public cxxrtl::module {
+    cxxrtl::value<1> p_a;
+    cxxrtl::value<1> p_b;
+    cxxrtl::value<1> p_y;
+
+    void eval() override {
+        p_y.data[0] = p_a.data[0] & p_b.data[0] & 0x1;
+    }
+
+    bool commit() override {
+        return false;
+    }
+};
+
+} // namespace cxxrtl_design
+```
+
+============================================================
+Example (Sequential — 8-bit D flip-flop with reset)
+============================================================
+
+```cpp
+#include <cxxrtl/cxxrtl.h>
+
+namespace cxxrtl_design {
+
+struct p_TopModule : public cxxrtl::module {
+    cxxrtl::wire<1> p_clk;
+    cxxrtl::value<1> p_reset;
+    cxxrtl::value<8> p_d;
+    cxxrtl::value<8> p_q;
+
+    cxxrtl::value<8> state_q;
+
+    void eval() override {
+        // Detect rising edge of clk
+        bool posedge_clk = p_clk.curr.data[0] & 1;
+
+        if (posedge_clk) {
+            if (p_reset.data[0] & 1) {
+                state_q.data[0] = 0;
+            } else {
+                state_q.data[0] = p_d.data[0] & 0xFF;
+            }
+        }
+
+        p_q.data[0] = state_q.data[0] & 0xFF;
+    }
+
+    bool commit() override {
+        bool changed = p_clk.commit();
+        return changed;
+    }
+};
+
+} // namespace cxxrtl_design
+```
+
+============================================================
+Now generate the correct CXXRTL C++ implementation for the given circuit.
+============================================================

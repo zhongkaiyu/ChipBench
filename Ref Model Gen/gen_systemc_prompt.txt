@@ -1,1 +1,120 @@
 
+You are a helpful assistant.
+
+Your task is to write **SystemC C++ code**, NOT Verilog.
+
+You must implement a SystemC module that simulates the hardware DUT behavior.
+The output must strictly follow the SystemC format instructions below.
+
+============================================================
+SystemC DUT Implementation Requirements
+============================================================
+
+You MUST generate a file equivalent to `dut.cc` with the following rules:
+
+1. You MUST define a SystemC module named `TopModule` using `SC_MODULE`:
+
+       SC_MODULE(TopModule) {
+           ...
+       };
+
+2. Port declarations:
+   - Input ports:  `sc_in<sc_uint<WIDTH>>  port_name;`
+   - Output ports: `sc_out<sc_uint<WIDTH>> port_name;`
+   - For 1-bit signals: `sc_in<bool>` / `sc_out<bool>`
+   - Clock input:  `sc_in<bool> clk;`
+   - Reset input:  `sc_in<bool> reset;`
+
+3. Required structure:
+   - Constructor with `SC_CTOR(TopModule)`:
+       - For combinational: register a `SC_METHOD` sensitive to all inputs
+       - For sequential: register a `SC_METHOD` or `SC_CTHREAD` sensitive to `clk.pos()`
+
+4. Combinational vs Sequential logic:
+   - If the circuit is combinational:
+       - Use `SC_METHOD(evaluate);`
+       - Add `sensitive << input1 << input2 << ...;` for all inputs
+       - Do NOT store any state
+   - If the circuit is sequential:
+       - Use `SC_METHOD(evaluate); sensitive << clk.pos();`
+         or `SC_CTHREAD(evaluate, clk.pos());`
+       - Maintain state using member variables
+       - Handle reset in the evaluate method
+
+5. Bit-width behavior:
+   - Use `sc_uint<N>` for N-bit unsigned values
+   - Use `sc_int<N>` for N-bit signed values
+   - Apply bit-masks or `.range()` when needed
+
+6. You MUST include the SystemC header:
+       #include <systemc.h>
+
+============================================================
+Output Format Instructions (VERY IMPORTANT)
+============================================================
+
+- You MUST output ONLY valid C++ code
+- Do NOT include any explanation text
+- Do NOT include Verilog
+- Do NOT include Markdown explanations
+- Do NOT include `<think>` tags
+- Do NOT include `sc_main()` — only the module definition
+- The entire output MUST be enclosed in ONE C++ code block:
+
+============================================================
+Example (Combinational — 1-bit AND gate)
+============================================================
+
+```cpp
+#include <systemc.h>
+
+SC_MODULE(TopModule) {
+    sc_in<bool> a;
+    sc_in<bool> b;
+    sc_out<bool> y;
+
+    void evaluate() {
+        y.write(a.read() & b.read());
+    }
+
+    SC_CTOR(TopModule) {
+        SC_METHOD(evaluate);
+        sensitive << a << b;
+    }
+};
+```
+
+============================================================
+Example (Sequential — 8-bit D flip-flop with reset)
+============================================================
+
+```cpp
+#include <systemc.h>
+
+SC_MODULE(TopModule) {
+    sc_in<bool> clk;
+    sc_in<bool> reset;
+    sc_in<sc_uint<8>> d;
+    sc_out<sc_uint<8>> q;
+
+    sc_uint<8> state_q;
+
+    void evaluate() {
+        if (reset.read()) {
+            state_q = 0;
+        } else {
+            state_q = d.read();
+        }
+        q.write(state_q);
+    }
+
+    SC_CTOR(TopModule) {
+        SC_METHOD(evaluate);
+        sensitive << clk.pos();
+    }
+};
+```
+
+============================================================
+Now generate the correct SystemC implementation for the given circuit.
+============================================================

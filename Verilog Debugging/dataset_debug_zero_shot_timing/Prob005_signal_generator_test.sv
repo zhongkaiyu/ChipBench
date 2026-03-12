@@ -86,7 +86,7 @@ module tb();
 	RefModule good1 (
 		.clk,
 		.rst_n,
-		.wave_choise(wave_choice),
+		.wave_choice(wave_choice),
 		.wave(wave_ref) );
 		
 	TopModule top_module1 (

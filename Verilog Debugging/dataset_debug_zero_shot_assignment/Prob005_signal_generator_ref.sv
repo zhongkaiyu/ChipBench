@@ -2,7 +2,7 @@
 module RefModule(
 	input clk,
 	input rst_n,
-	input [1:0] wave_choise,
+	input [1:0] wave_choice,
 	output reg [4:0]wave
 	);
 
@@ -14,7 +14,7 @@ module RefModule(
         if(~rst_n)
             cnt <= 0;
         else
-            cnt <= wave_choise!=0 ? 0:
+            cnt <= wave_choice!=0 ? 0:
                    cnt        ==19? 0:
                    cnt + 1;
     end
@@ -24,7 +24,7 @@ module RefModule(
         if(~rst_n)
             flag <= 0;
         else
-            flag <= wave_choise!=2 ? 0:
+            flag <= wave_choice!=2 ? 0:
                     wave       ==1 ? 1:
                     wave       ==19? 0:
                     flag;
@@ -36,7 +36,7 @@ module RefModule(
         if(~rst_n) 
             wave <= 0;
         else 
-            case(wave_choise)
+            case(wave_choice)
                 0      : wave <= cnt == 9? 20    : 
                                  cnt ==19? 0     :
                                  wave;

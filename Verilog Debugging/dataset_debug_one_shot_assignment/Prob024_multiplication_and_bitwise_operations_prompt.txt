@@ -12,7 +12,7 @@ as possible.
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
 ```
-module RefModule(
+module TopModule(
     input  [7:0]    A,
     output [15:0]   B
     );

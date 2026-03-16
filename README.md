@@ -7,8 +7,7 @@ docker run -it --name your-perfect-dokcer-name -v $(pwd):/workspace/verilogeval 
 
 # Contact  
 
-If you have any questions or would like further information, please feel free to contact us at zhy055@ucsd.edu
- or cz2791@columbia.edu We would be happy to assist and provide additional details.  
+If you have any questions or would like further information, please feel free to contact us at mailto:zhy055@ucsd.edu and mailto:cz2791@columbia.edu You can also visit our homepages for more details about our work: Zhongkai Yuhttps://zhongkaiyu.github.io/ and Chenyang Zhou – https://chz05.github.io/ Chenyang Zhou is currently looking for PhD opportunities.
 
 # Overview
 

@@ -5,6 +5,11 @@ docker build -t verilogeval:v2 .
 docker run -it --name your-perfect-dokcer-name -v $(pwd):/workspace/verilogeval verilogeval:v2
 ```
 
+# Contact  
+
+If you have any questions or would like further information, please feel free to contact us at zhy055@ucsd.edu
+ or cz2791@columbia.edu We would be happy to assist and provide additional details.  
+
 # Overview
 
 This repository provides an **end-to-end evaluation framework** that spans Verilog generation, Verilog debugging, reference model generation, and utility tooling. Conceptually, it is organized into four main components:

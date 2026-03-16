@@ -7,14 +7,14 @@ specified.
  - input  A (8 bits)
  - input  B (8 bits)
  - input  vld_in
- - output lcm_out (8 bits)
+ - output lcm_out (16 bits)
  - output mcd_out (8 bits)
  - output vld_out
 
 Design a sequential circuit that takes two unsigned numbers as input and
 outputs their least common multiple (LCM) and greatest common divisor (GCD).
-The bit width can be determined by parameter DATA_W, which is assumed to be
-8 for this implementation.
+The bit width can be determined by parameter DATA_W. For this implementation,
+DATA_W is 8, so A, B, and mcd_out are 8 bits while lcm_out is 16 bits.
 
 The circuit should operate as follows:
 - When vld_in is asserted, the input data A and B are valid and should be

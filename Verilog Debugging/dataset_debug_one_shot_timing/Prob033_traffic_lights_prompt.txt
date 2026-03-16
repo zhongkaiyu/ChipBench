@@ -38,7 +38,7 @@ Traffic light operation:
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
 ```
-module RefModule
+module TopModule
     (
 		input rst_n, //异位复位信号，低电平有效
         input clk, //时钟信号

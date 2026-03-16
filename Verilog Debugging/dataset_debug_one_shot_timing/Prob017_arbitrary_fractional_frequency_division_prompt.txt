@@ -35,7 +35,7 @@ parameter div_o = 5'd9; //odd period
 
 Based on the problem description above, the code below has bug, please fix that:
 ```
-module RefModule(
+module TopModule(
      input  wire clk_in,
      input  wire rst,
      output wire clk_out

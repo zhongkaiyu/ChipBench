@@ -22,6 +22,8 @@ The circuit should operate as follows:
 - The circuit computes both the LCM and GCD of the two input numbers
 - When the computation is complete, vld_out should be asserted to indicate
   that the output data is valid
+- Before the output is valid, lcm_out should be driven to high impedance
+  ('hz). This is required in this design; otherwise there will be a problem
 - The rst_n signal is an active-low reset signal
 
 Assume all sequential logic is triggered on the positive edge of the clock.

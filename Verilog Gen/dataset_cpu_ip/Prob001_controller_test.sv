@@ -189,6 +189,7 @@ module tb();
 	// Use explicit sensitivity list here. @(*) causes NetProc::nex_input() to be called when trying to compute
 	// the sensitivity list of the @(strobe) process, which isn't implemented.
 	always @(posedge clk, negedge clk) begin
+		wait_for_end_of_timestep();
 
 		stats1.clocks++;
 		if (!tb_match) begin
@@ -233,4 +234,3 @@ module tb();
    end
 
 endmodule
-

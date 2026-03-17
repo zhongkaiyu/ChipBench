@@ -29,7 +29,7 @@ Based on the problem description above, the code below in TopModule has bug, ple
 module TopModule(
 	input clk,
 	input rst_n,
-	input [1:0] wave_choise,
+	input [1:0] wave_choice,
 	output reg [4:0]wave
 	);
 
@@ -41,7 +41,7 @@ module TopModule(
         if(~rst_n)
             cnt <= 0;
         else
-            cnt <= wave_choise!=0 ? 0:
+            cnt <= wave_choice!=0 ? 0:
                    cnt        ==20? 0:
                    cnt + 1;
     end
@@ -51,7 +51,7 @@ module TopModule(
         if(~rst_n)
             flag <= 0;
         else
-            flag <= wave_choise!=2 ? 0:
+            flag <= wave_choice!=2 ? 0:
                     wave       ==1 ? 1:
                     wave       ==20? 0:
                     flag;
@@ -63,7 +63,7 @@ module TopModule(
         if(~rst_n) 
             wave <= 0;
         else 
-            case(wave_choise)
+            case(wave_choice)
                 0      : wave <= cnt == 9? 20    : 
                                  cnt ==20? 0     :
                                  wave;

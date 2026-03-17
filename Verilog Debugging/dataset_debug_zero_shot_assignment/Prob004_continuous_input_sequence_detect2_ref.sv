@@ -29,37 +29,37 @@ begin
     case(pstate)
         idle:
             if(data_valid && !data)
-                nstate=s1_d0;			//第一位匹配
+                nstate=s1_d0;			//First bit matched
             else
                 nstate=idle;
         s1_d0:
             if (data_valid)
 				begin	
-					if (data) nstate = s2_d01;		//数据有效且为1，即前两位01匹配，下一状态为s2_d01
-					else nstate = s1_d0;			//数据有效但为0，即只有第一位0匹配，下一状态为s1_d0
+					if (data) nstate = s2_d01;		//Data valid and is 1, first two bits 01 matched, next state is s2_d01
+					else nstate = s1_d0;			//Data valid but is 0, only first bit 0 matched, next state is s1_d0
 				end
-			else nstate = s1_d0;					//数据无效，保持在s1_d0
+			else nstate = s1_d0;					//Data invalid, stay in s1_d0
         s2_d01:
             if (data_valid)
 				begin	
-					if (data) nstate = s3_d011;		//数据有效且为1，即前三位011匹配，下一状态为s3_d011
-					else nstate = s1_d0;			//数据有效但为0，即只有第一位0匹配，下一状态为s1_d0
+					if (data) nstate = s3_d011;		//Data valid and is 1, first three bits 011 matched, next state is s3_d011
+					else nstate = s1_d0;			//Data valid but is 0, only first bit 0 matched, next state is s1_d0
 				end
-			else nstate = s2_d01;					//数据无效，保持在s2_d01
+			else nstate = s2_d01;					//Data invalid, stay in s2_d01
         s3_d011:
             if (data_valid)
 				begin	
-					if (!data) nstate = s4_d0110;		//数据有效且为0，即前四位0110匹配，下一状态为s4_d0110
-					else nstate = idle;					//数据有效但为1，即不匹配，下一状态为idle
+					if (!data) nstate = s4_d0110;		//Data valid and is 0, first four bits 0110 matched, next state is s4_d0110
+					else nstate = idle;					//Data valid but is 1, no match, next state is idle
 				end
-			else nstate = s3_d011;					//数据无效，保持在s3_d011
+			else nstate = s3_d011;					//Data invalid, stay in s3_d011
         s4_d0110:
             if (data_valid)
 				begin	
-					if (!data) nstate = s1_d0;		//数据有效且为0，即匹配目标序列的第一位0，下一状态为s1_d0
-					else nstate = idle;			//数据有效但为1，不匹配目标序列，下一状态为idle
+					if (!data) nstate = s1_d0;		//Data valid and is 0, matches first bit 0 of target sequence, next state is s1_d0
+					else nstate = idle;			//Data valid but is 1, does not match target sequence, next state is idle
 				end
-			else nstate = idle;					//数据无效，下一状态为idle
+			else nstate = idle;					//Data invalid, next state is idle
         default:
             nstate=idle;
         endcase
@@ -69,7 +69,7 @@ always @(pstate or rst_n)
 begin
     if(!rst_n==1)
         match=1'b0;
-    else if(pstate==s4_d0110)						//进入状态s4_d0110表示四位数据都匹配，把匹配指示信号match拉高
+    else if(pstate==s4_d0110)						//Entering state s4_d0110 means all four bits matched, assert match signal high
             match=1'b1;
          else
             match=1'b0;

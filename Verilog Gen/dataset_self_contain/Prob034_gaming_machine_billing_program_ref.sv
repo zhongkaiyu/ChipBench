@@ -1,8 +1,8 @@
 
 module RefModule
 (
-    input rst_n, //异位复位信号，低电平有效
-    input clk, 	//时钟信号
+    input rst_n, //Asynchronous reset signal, active low
+    input clk, 	//Clock signal
     input [9:0]money,
     input set,
     input boost,

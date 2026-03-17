@@ -31,13 +31,13 @@ module RefModule(
 		if(rst == `RstEnable) begin
 			count_o <= `ZeroWord;
 			compare_o <= `ZeroWord;
-			//status�Ĵ�����CUΪ0001����ʾЭ������CP0����
+			//status register: CU is 0001, indicating coprocessor CP0 is available
 			status_o <= 32'b00010000000000000000000000000000;
 			cause_o <= `ZeroWord;
 			epc_o <= `ZeroWord;
-			//config�Ĵ�����BEΪ1����ʾBig-Endian��MTΪ00����ʾû��MMU
+			//config register: BE is 1, indicating Big-Endian; MT is 00, indicating no MMU
 			config_o <= 32'b00000000000000001000000000000000;
-			//��������L����Ӧ����0x48��������0x1���������ͣ��汾����1.0
+			//Processor ID: company L corresponds to 0x48, processor number 0x1, processor type, version 1.0
 			prid_o <= 32'b00000000010011000000000100000010;
       timer_int_o <= `InterruptNotAssert;
 		end else begin
@@ -65,7 +65,7 @@ module RefModule(
 						epc_o <= data_i;
 					end
 					`CP0_REG_CAUSE:	begin
-					  //cause�Ĵ���ֻ��IP[1:0]��IV��WP�ֶ��ǿ�д��
+					  //cause register: only IP[1:0], IV, and WP fields are writable
 						cause_o[9:8] <= data_i[9:8];
 						cause_o[23] <= data_i[23];
 						cause_o[22] <= data_i[22];

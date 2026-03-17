@@ -1,8 +1,8 @@
 
 module RefModule
     (
-		input rst_n, //异位复位信号，低电平有效
-        input clk, //时钟信号
+		input rst_n, //Asynchronous reset signal, active low
+        input clk, //Clock signal
         input pass_request,
 		output wire[7:0]clock,
         output reg red,
@@ -16,7 +16,7 @@ module RefModule
 				s3_yellow = 2'd3;
 	reg [7:0] cnt;
 	reg [1:0] state;
-	reg p_red,p_yellow,p_green;		//用于缓存信号灯的前一时刻的数值，判断上升沿
+	reg p_red,p_yellow,p_green;		//Buffer previous signal light values for rising edge detection
 
 
 always @(posedge clk or negedge rst_n) 

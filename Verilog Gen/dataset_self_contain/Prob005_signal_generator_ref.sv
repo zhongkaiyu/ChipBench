@@ -9,7 +9,7 @@ module RefModule(
     reg [4:0] cnt;
     reg flag;
     
-  	// 方波模式下，计数器控制
+  	// Counter control in square wave mode
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n)
             cnt <= 0;
@@ -19,7 +19,7 @@ module RefModule(
                    cnt + 1;
     end
     
-  	// 三角波模式下，标志位控制
+  	// Flag control in triangle wave mode
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n)
             flag <= 0;
@@ -31,7 +31,7 @@ module RefModule(
     end
     
   
-  	// 更新wave信号
+  	// Update wave signal
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n) 
             wave <= 0;

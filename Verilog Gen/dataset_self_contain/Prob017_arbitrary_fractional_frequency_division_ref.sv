@@ -5,9 +5,9 @@ module RefModule(
      output wire clk_out
 );
     parameter M_N = 8'd87; 
-    parameter c89 = 8'd24;  // 8/9时钟切换点
-    parameter div_e = 5'd8; //偶数周期
-    parameter div_o = 5'd9; //奇数周期
+    parameter c89 = 8'd24;  // 8/9 clock switching point
+    parameter div_e = 5'd8; //Even cycle
+    parameter div_o = 5'd9; //Odd cycle
 //*************code***********//
     reg [3:0] clk_cnt;
     reg [6:0] cyc_cnt;

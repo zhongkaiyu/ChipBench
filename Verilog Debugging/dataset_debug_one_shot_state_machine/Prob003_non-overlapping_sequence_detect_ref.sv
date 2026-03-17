@@ -36,7 +36,7 @@ begin
     case(pstate)
         idle:
             if(data==0)
-                nstate=s1;			//第一位匹配
+                nstate=s1;			//First bit matched
             else
                 nstate=sf1;
         s1:

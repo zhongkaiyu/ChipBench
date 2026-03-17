@@ -25,7 +25,7 @@
 `define ChipDisable 1'b0
 
 
-//ָ��
+//Instructions
 `define EXE_AND  6'b100100
 `define EXE_OR   6'b100101
 `define EXE_XOR 6'b100110
@@ -239,20 +239,20 @@
 `define EXE_RES_NOP 3'b000
 
 
-//ָ��洢��inst_rom
+//Instruction memory inst_rom
 `define InstAddrBus 31:0
 `define InstBus 31:0
 `define InstMemNum 131071
 `define InstMemNumLog2 17
 
-//���ݴ洢��data_ram
+//Data memory data_ram
 `define DataAddrBus 31:0
 `define DataBus 31:0
 `define DataMemNum 131071
 `define DataMemNumLog2 17
 `define ByteWidth 7:0
 
-//ͨ�üĴ���regfile
+//General purpose registers regfile
 `define RegAddrBus 4:0
 `define RegBus 31:0
 `define RegWidth 32
@@ -262,7 +262,7 @@
 `define RegNumLog2 5
 `define NOPRegAddr 5'b00000
 
-//����div
+//Division div
 `define DivFree 2'b00
 `define DivByZero 2'b01
 `define DivOn 2'b10
@@ -272,16 +272,16 @@
 `define DivStart 1'b1
 `define DivStop 1'b0
 
-//CP0�Ĵ�����ַ
-`define CP0_REG_COUNT    5'b01001        //�ɶ�д
-`define CP0_REG_COMPARE    5'b01011      //�ɶ�д
-`define CP0_REG_STATUS    5'b01100       //�ɶ�д
-`define CP0_REG_CAUSE    5'b01101        //ֻ��
-`define CP0_REG_EPC    5'b01110          //�ɶ�д
-`define CP0_REG_PrId    5'b01111         //ֻ��
-`define CP0_REG_CONFIG    5'b10000       //ֻ��
+//CP0 register addresses
+`define CP0_REG_COUNT    5'b01001        //Read-write
+`define CP0_REG_COMPARE    5'b01011      //Read-write
+`define CP0_REG_STATUS    5'b01100       //Read-write
+`define CP0_REG_CAUSE    5'b01101        //Read-only
+`define CP0_REG_EPC    5'b01110          //Read-write
+`define CP0_REG_PrId    5'b01111         //Read-only
+`define CP0_REG_CONFIG    5'b10000       //Read-only
 
-//wishbone���ߵ�״̬��
+//Wishbone bus state machine
 `define WB_IDLE 2'b00
 `define WB_BUSY 2'b01
 `define WB_WAIT_FOR_FLUSHING 2'b10

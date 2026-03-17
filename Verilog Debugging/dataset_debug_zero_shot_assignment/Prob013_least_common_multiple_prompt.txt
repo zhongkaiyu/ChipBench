@@ -113,7 +113,7 @@ output  reg                     vld_out
     end
     end
     assign mcd_out = mcd_out_r1;
-    assign lcm_out = (mcd_out_r1 == 'd0) ? 'hz : (mult_reg / mcd_out_r1); // 最大公因數的暫存器若為0，就輸出高阻抗，否則電路會有問題
+    assign lcm_out = (mcd_out_r1 == 'd0) ? 'hz : (mult_reg / mcd_out_r1); // If the GCD register is 0, output high impedance, otherwise the circuit will have problems
  
     always @(posedge clk , negedge rst_n) begin
         if(~rst_n)                 vld_out <= 1'b0;

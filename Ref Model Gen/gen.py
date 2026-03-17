@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
-统一测试生成脚本：合并 iterative_test.py 和 parallel_gen.py 的功能
+Unified test generation script combining iterative_test.py and parallel_gen.py functionality.
 
-功能：
-- 从 jsonl 数据集中读取数据
-- 调用 DeepSeek API 生成 Python 代码
-- 进行测试验证
-- 支持迭代修复（失败时带上错误信息继续请求）
-- 支持中断恢复
-- 支持并行处理
-- 输出 CSV 统计和 PDF 图表
-- 将通过的数据保存到 _passed.jsonl
+Features:
+- Read data from JSONL datasets
+- Call DeepSeek API to generate Python code
+- Run test verification
+- Iterative repair (retry with error messages on failure)
+- Resume from interruption
+- Parallel processing
+- Output CSV statistics and PDF charts
+- Save passing cases to _passed.jsonl
 
-使用方式：
+Usage:
     python gen.py --input data.jsonl --samples 100 --turns 3
-    python gen.py --input data.jsonl  # 使用全部数据，默认3轮
+    python gen.py --input data.jsonl  # use all data, default 3 turns
 """
 
 import argparse
@@ -32,7 +32,7 @@ from typing import Dict, List, Optional, Any
 import csv
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg')  # 使用非交互式后端
+matplotlib.use('Agg')  # Use non-interactive backend
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
@@ -41,22 +41,22 @@ try:
 except ImportError:
     HAS_TQDM = False
 
-# ===================== 配置区 =====================
+# ===================== Configuration =====================
 
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 MODEL_NAME = "deepseek-reasoner"
 
-# 并发线程数
+# Max concurrent threads
 MAX_WORKERS = 24
 
-# API 调用重试
+# API call retries
 MAX_RETRIES = 5
 REQUEST_TIMEOUT = 180
 
-# QPS 控制（会根据 key 数量动态调整）
+# QPS control (dynamically adjusted based on number of keys)
 KEY_COOLDOWN_SECONDS = 30
 
-# Cost per million tokens (DeepSeek Reasoner 价格)
+# Cost per million tokens (DeepSeek Reasoner pricing)
 COST_INPUT_PER_MILLION = 0.55
 COST_OUTPUT_PER_MILLION = 2.19
 
@@ -64,7 +64,7 @@ COST_OUTPUT_PER_MILLION = 2.19
 
 SYSTEM_PROMPT = open("gen_python_prompt.txt", "r").read()
 
-# ===================== Key 管理 =====================
+# ===================== Key Management =====================
 
 @dataclass
 class APIKey:
@@ -114,7 +114,7 @@ class APIKeyPool:
 
 
 def load_api_keys(config_path: str = "key.cfg") -> List[str]:
-    """从配置文件加载 API keys"""
+    """Load API keys from config file"""
     keys = []
     config_file = Path(config_path)
     
@@ -126,7 +126,7 @@ def load_api_keys(config_path: str = "key.cfg") -> List[str]:
     with open(config_file, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
-            # 跳过空行和注释
+            # Skip empty lines and comments
             if line and not line.startswith('#'):
                 keys.append(line)
     
@@ -158,17 +158,17 @@ class QPSLimiter:
             self.interval = 1.0 / qps if qps > 0 else 1.0
 
 
-# ===================== 全局变量（在main中初始化） =====================
+# ===================== Globals (initialized in main) =====================
 
 key_pool: Optional[APIKeyPool] = None
 qps_limiter: Optional[QPSLimiter] = None
 write_lock = threading.Lock()
 dir_lock = threading.Lock()
 
-# ===================== 工具函数 =====================
+# ===================== Utility Functions =====================
 
 def extract_python_code(content: str) -> str:
-    """从 markdown 代码块中提取 Python 代码"""
+    """Extract Python code from markdown code blocks"""
     match = re.search(r'```(?:python)?\s*\n(.*?)```', content, re.DOTALL)
     if match:
         return match.group(1).strip()
@@ -176,7 +176,7 @@ def extract_python_code(content: str) -> str:
 
 
 def extract_ports_from_verilog(verilog_code: str):
-    """从 Verilog 代码中提取输入输出端口信息"""
+    """Extract input/output port information from Verilog code"""
     verilog_code = re.sub(r'//[^\n]*', '', verilog_code)
     verilog_code = re.sub(r'/\*[\s\S]*?\*/', '', verilog_code)
     
@@ -213,7 +213,7 @@ def extract_ports_from_verilog(verilog_code: str):
 
 
 def rename_module_to_refmodule(verilog_code: str) -> str:
-    """将模块名重命名为 RefModule"""
+    """Rename the module to RefModule"""
     module_name_match = re.search(r'module\s+(\w+)', verilog_code)
     if module_name_match:
         module_name = module_name_match.group(1)
@@ -228,7 +228,7 @@ def rename_module_to_refmodule(verilog_code: str) -> str:
 
 
 def save_log(log_dir: str, filename: str, content: str):
-    """线程安全地保存日志"""
+    """Save log file (thread-safe)"""
     with dir_lock:
         os.makedirs(log_dir, exist_ok=True)
     
@@ -238,19 +238,19 @@ def save_log(log_dir: str, filename: str, content: str):
 
 
 def append_jsonl(path: str, obj: dict):
-    """线程安全地追加 jsonl"""
+    """Append to JSONL file (thread-safe)"""
     with write_lock:
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(obj, ensure_ascii=False) + "\n")
 
 
-# ===================== API 调用 =====================
+# ===================== API Calls =====================
 
 def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
     """
-    调用 DeepSeek API，返回 content 和 token 使用情况
-    返回: {"content": str, "prompt_tokens": int, "completion_tokens": int, 
-           "total_tokens": int, "reasoning_content": str}
+    Call DeepSeek API, return content and token usage.
+    Returns: {"content": str, "prompt_tokens": int, "completion_tokens": int,
+              "total_tokens": int, "reasoning_content": str}
     """
     global key_pool, qps_limiter
     
@@ -347,12 +347,12 @@ def call_deepseek(system_prompt: str, user_prompt: str) -> dict:
             time.sleep(2 ** attempt)
 
 
-# ===================== 测试函数 =====================
+# ===================== Test Functions =====================
 
 def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
     """
-    运行测试，返回详细的错误信息
-    返回: (success: bool, error_details: dict)
+    Run test and return detailed error information.
+    Returns: (success: bool, error_details: dict)
     """
     import sys
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -374,7 +374,7 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
     }
 
     try:
-        # 提取 ground truth (Verilog)
+        # Extract ground truth (Verilog)
         gt = entry_data.get('ground_truth', [])
         if not gt:
             error_details["error_type"] = "NO_GROUND_TRUTH"
@@ -389,26 +389,26 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
         
         verilog_code = rename_module_to_refmodule(verilog_code)
         
-        # 检查 Python 代码是否有效
+        # Check if Python code is valid
         if not python_code or not python_code.strip():
             error_details["error_type"] = "EMPTY_PYTHON_CODE"
             error_details["error_message"] = "Empty or invalid Python code generated"
             return False, error_details
         
-        # 检查是否包含 TopModule 类
+        # Check if TopModule class is present
         if 'class TopModule' not in python_code:
             error_details["error_type"] = "MISSING_TOPMODULE"
             error_details["error_message"] = "Generated code does not contain 'class TopModule'"
             return False, error_details
         
-        # 提取端口
+        # Extract ports
         inputs, outputs = extract_ports_from_verilog(verilog_code)
         if not inputs and not outputs:
             error_details["error_type"] = "NO_PORTS"
             error_details["error_message"] = "Could not extract ports from Verilog"
             return False, error_details
         
-        # 写入文件
+        # Write files
         ref_sv_path = os.path.join(entry_work_dir, "ref.sv")
         dut_py_path = os.path.join(entry_work_dir, "dut.py")
         
@@ -418,7 +418,7 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
         with open(dut_py_path, 'w') as f:
             f.write(python_code)
         
-        # 尝试语法检查 Python 代码
+        # Syntax-check the Python code
         try:
             compile(python_code, '<string>', 'exec')
         except SyntaxError as e:
@@ -426,13 +426,13 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
             error_details["error_message"] = f"Python syntax error at line {e.lineno}: {e.msg}"
             return False, error_details
         
-        # 生成测试台
+        # Generate testbench
         tb_code = generate_testbench_ref_vs_python(inputs, outputs, "dut")
         tb_path = os.path.join(entry_work_dir, "testbench.cpp")
         with open(tb_path, 'w') as f:
             f.write(tb_code)
         
-        # 编译 RefModule
+        # Compile RefModule
         verilator_cmd = [
             "verilator", "--cc", "ref.sv",
             "--top-module", "RefModule",
@@ -451,7 +451,7 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
             error_details["stdout"] = result.stdout[:2000]
             return False, error_details
         
-        # 构建
+        # Build
         make_cmd = ["make", "-C", "obj_dir", "-f", "VRefModule.mk", "sim"]
         result = subprocess.run(make_cmd, capture_output=True, text=True, timeout=120, cwd=entry_work_dir)
         if result.returncode != 0:
@@ -461,13 +461,13 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
             error_details["stdout"] = result.stdout[:2000]
             return False, error_details
         
-        # 运行仿真
+        # Run simulation
         result = subprocess.run(["./obj_dir/sim"], capture_output=True, text=True, timeout=300, cwd=entry_work_dir)
         
         error_details["stdout"] = result.stdout
         error_details["stderr"] = result.stderr
         
-        # 读取测试日志
+        # Read test log
         test_log_path = os.path.join(entry_work_dir, "test_log.txt")
         if os.path.exists(test_log_path):
             with open(test_log_path, 'r') as f:
@@ -478,7 +478,7 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
         else:
             error_details["error_type"] = "TEST_MISMATCH"
             
-            # 从 test_log 中提取失败测试用例
+            # Extract failed test cases from test_log
             failed_tests = []
             test_log = error_details.get("test_log", "")
             
@@ -531,13 +531,13 @@ def run_test_detailed(entry_data: dict, python_code: str, work_dir: str):
         return False, error_details
 
 
-# ===================== 主处理逻辑 =====================
+# ===================== Main Processing Logic =====================
 
 def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[dict], log_dir: str):
     """
-    处理一个测试用例的一轮
-    返回: dict with keys: problem_id, success, python_code, tokens, error_details, 
-          user_prompt, api_response, reasoning_content
+    Process one test case for a single turn.
+    Returns: dict with keys: problem_id, success, python_code, tokens, error_details,
+             user_prompt, api_response, reasoning_content
     """
     problem_id = entry_data.get('problem_id', 'unknown')
     
@@ -552,12 +552,12 @@ def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[
         "reasoning_content": ""
     }
     
-    # 构建 user prompt
+    # Build user prompt
     user_content = None
     for m in entry_data.get("question", []):
         if m.get("role") == "user":
             user_content = m.get("content", "")
-            # 替换 Verilog 为 Python
+            # Replace Verilog references with Python
             user_content = user_content.replace("SystemVerilog", "Python")
             user_content = user_content.replace("systemverilog", "python")
             user_content = user_content.replace("Verilog", "Python")
@@ -568,7 +568,7 @@ def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[
         result["error_details"] = {"error_type": "NO_USER_CONTENT", "error_message": "No user content in question"}
         return result
     
-    # 如果是第二轮及以后，加上之前的错误信息
+    # For turn 2+, append previous error information
     if turn_num > 1 and previous_errors:
         prev_code = previous_errors.get('code', '')
         prev_error = previous_errors.get('error', '')
@@ -593,7 +593,7 @@ def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[
     
     result["user_prompt"] = user_content
     
-    # 调用 API
+    # Call API
     try:
         api_result = call_deepseek(SYSTEM_PROMPT, user_content)
         result["api_response"] = api_result.get("content", "")
@@ -611,7 +611,7 @@ def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[
             result["error_details"] = {"error_type": "NO_CODE_EXTRACTED", "error_message": "Could not extract Python code from API response"}
             return result
         
-        # 运行测试
+        # Run test
         work_dir = os.path.join(log_dir, f"turn_{turn_num}")
         success, error_details = run_test_detailed(entry_data, python_code, work_dir)
         
@@ -626,7 +626,7 @@ def process_one_case(entry_data: dict, turn_num: int, previous_errors: Optional[
 
 
 def save_turn_logs(turn_num: int, problem_id: str, result: dict, log_dir: str):
-    """保存每次调用的详细日志"""
+    """Save detailed logs for each API call"""
     problem_log_dir = os.path.join(log_dir, f"turn_{turn_num}", f"problem_{problem_id}")
     
     with dir_lock:
@@ -677,7 +677,7 @@ Success: {result.get('success', False)}
 
 
 def load_done_ids(path: str) -> set:
-    """加载已完成的 problem_id（用于断点恢复）"""
+    """Load completed problem IDs (for resume support)"""
     done = set()
     if not Path(path).exists():
         return done
@@ -692,7 +692,7 @@ def load_done_ids(path: str) -> set:
 
 
 def load_case_states(path: str) -> dict:
-    """加载用例状态（用于断点恢复）"""
+    """Load case states (for resume support)"""
     if Path(path).exists():
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -712,16 +712,16 @@ def main():
     
     args = parser.parse_args()
     
-    # 设置随机种子
+    # Set random seed
     random.seed(args.seed)
     
-    # 加载 API keys
+    # Load API keys
     global key_pool, qps_limiter
     api_keys = load_api_keys(args.key_config)
     key_pool = APIKeyPool(api_keys)
-    qps_limiter = QPSLimiter(len(api_keys))  # QPS = key数量
+    qps_limiter = QPSLimiter(len(api_keys))  # QPS = number of keys
     
-    # 设置输出目录和文件名
+    # Set up output directory and filenames
     input_path = Path(args.input)
     input_stem = input_path.stem
     
@@ -741,7 +741,7 @@ def main():
     
     os.makedirs(log_dir, exist_ok=True)
     
-    # 读取输入数据
+    # Read input data
     all_data = []
     with open(args.input, 'r', encoding='utf-8') as f:
         for line in f:
@@ -750,7 +750,7 @@ def main():
     
     print(f"[INFO] Loaded {len(all_data)} entries from {args.input}")
     
-    # 采样
+    # Sample
     if args.samples and args.samples < len(all_data):
         cases = random.sample(all_data, args.samples)
         print(f"[INFO] Sampled {len(cases)} entries")
@@ -758,31 +758,31 @@ def main():
         cases = all_data
         print(f"[INFO] Using all {len(cases)} entries")
     
-    # 断点恢复
+    # Resume from checkpoint
     case_states = {}
     start_turn = 1
     
     if args.resume:
-        # 加载已通过的 problem_id
+        # Load already-passed problem IDs
         passed_ids = load_done_ids(passed_jsonl)
         print(f"[INFO] Found {len(passed_ids)} already passed cases")
         
-        # 加载用例状态
+        # Load case states
         case_states = load_case_states(states_file)
         
-        # 加载进度
+        # Load progress
         if Path(progress_file).exists():
             with open(progress_file, 'r') as f:
                 progress = json.load(f)
                 start_turn = progress.get('next_turn', 1)
                 print(f"[INFO] Resuming from turn {start_turn}")
     
-    # 统计
+    # Statistics
     total_passed = sum(1 for pid, state in case_states.items() if state.get('passed', False))
     total_cost = sum(state.get('total_cost', 0) for state in case_states.values())
     turn_stats = []
     
-    # 迭代处理
+    # Iterative processing
     max_turns = args.turns
     
     for turn in range(start_turn, max_turns + 1):
@@ -790,7 +790,7 @@ def main():
         print(f"Turn {turn}/{max_turns}")
         print(f"{'='*60}")
         
-        # 获取需要处理的用例
+        # Get cases that still need processing
         active_cases = [
             case for case in cases
             if case.get('problem_id') not in case_states or not case_states[case.get('problem_id')].get('passed', False)
@@ -858,7 +858,7 @@ def main():
                     turn_fail_count += 1
                     print(f"[ERROR] Exception: {e}")
         
-        # 更新统计
+        # Update statistics
         for result, original_case in results:
             problem_id = result["problem_id"]
             
@@ -874,7 +874,7 @@ def main():
                     'total_cost': 0
                 }
             
-            # 计算这次调用的成本
+            # Calculate cost for this call
             call_cost = (
                 result["tokens"].get("prompt_tokens", 0) / 1_000_000 * COST_INPUT_PER_MILLION +
                 result["tokens"].get("completion_tokens", 0) / 1_000_000 * COST_OUTPUT_PER_MILLION
@@ -889,7 +889,7 @@ def main():
                 case_states[problem_id]['code'] = result["python_code"]
                 case_states[problem_id]['passed_turn'] = turn
                 
-                # 保存通过的数据到 _passed.jsonl
+                # Save passing cases to _passed.jsonl
                 passed_entry = original_case.copy()
                 passed_entry['generated_python'] = result["python_code"]
                 passed_entry['reasoning_content'] = result.get("reasoning_content", "")
@@ -906,7 +906,7 @@ def main():
                     'error_details': result["error_details"]
                 })
         
-        # 计算这一轮的成本
+        # Calculate cost for this turn
         turn_cost = (
             turn_prompt_tokens / 1_000_000 * COST_INPUT_PER_MILLION +
             turn_completion_tokens / 1_000_000 * COST_OUTPUT_PER_MILLION
@@ -935,7 +935,7 @@ def main():
         if total_passed > 0:
             print(f"  Cost per pass: ${total_cost/total_passed:.4f}")
         
-        # 保存进度（用于断点恢复）
+        # Save progress (for resume support)
         with open(states_file, 'w', encoding='utf-8') as f:
             json.dump(case_states, f, indent=2, ensure_ascii=False)
         
@@ -950,7 +950,7 @@ def main():
             print("\n[FATAL] All API keys exhausted. Stopping.")
             break
     
-    # 输出 CSV
+    # Output CSV
     print(f"\nWriting results to {output_csv}...")
     with open(output_csv, 'w', newline='', encoding='utf-8') as f:
         fieldnames = ['turn', 'total_pass', 'pass_rate', 'total_cost', 'cost_per_case', 
@@ -960,11 +960,11 @@ def main():
         for stat in turn_stats:
             writer.writerow(stat)
     
-    # 保存最终的用例状态
+    # Save final case states
     with open(states_file, 'w', encoding='utf-8') as f:
         json.dump(case_states, f, indent=2, ensure_ascii=False)
     
-    # 生成汇总表格
+    # Generate summary table
     summary_csv = os.path.join(output_dir, f"{input_stem}_summary.csv")
     with open(summary_csv, 'w', newline='', encoding='utf-8') as f:
         fieldnames = ['problem_id', 'passed', 'passed_turn', 'total_cost', 'error_type']
@@ -982,7 +982,7 @@ def main():
                 'error_type': last_error_type if not state.get('passed') else ''
             })
     
-    # 绘制图表
+    # Plot charts
     if turn_stats:
         print(f"Generating plot to {output_pdf}...")
         fig, ax1 = plt.subplots(figsize=(12, 6))

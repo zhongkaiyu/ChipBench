@@ -14,7 +14,7 @@ module RefModule(
     reg [3:0] myRAM [7:0];
     
     reg [8:0] i;
-  	// integer i; // 不可综合
+  	// integer i; // Not synthesizable
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n)
             for(i=0;i<256;i=i+1)

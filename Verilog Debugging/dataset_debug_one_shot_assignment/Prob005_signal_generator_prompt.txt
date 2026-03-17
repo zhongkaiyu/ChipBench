@@ -36,7 +36,7 @@ module TopModule(
     reg [4:0] cnt;
     reg flag;
     
-  	// 方波模式下，计数器控制
+  	// Square wave mode, counter control
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n)
             cnt <= 0;
@@ -46,7 +46,7 @@ module TopModule(
                    cnt + 1;
     end
     
-  	// 三角波模式下，标志位控制
+  	// Triangle wave mode, flag bit control
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n)
             flag <= 0;
@@ -58,7 +58,7 @@ module TopModule(
     end
     
   
-  	// 更新wave信号
+  	// Update wave signal
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n) 
             wave <= 0;

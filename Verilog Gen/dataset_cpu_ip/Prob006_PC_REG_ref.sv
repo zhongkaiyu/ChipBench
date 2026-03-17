@@ -4,12 +4,12 @@ module RefModule(
 	input	wire										clk,
 	input wire										rst,
 
-	//来自控制模块的信息
+	//Information from the control module
 	input wire[5:0]               stall,
 	input wire                    flush,
 	input wire[`RegBus]           new_pc,
 
-	//来自译码阶段的信息
+	//Information from the decode stage
 	input wire                    branch_flag_i,
 	input wire[`RegBus]           branch_target_address_i,
 	

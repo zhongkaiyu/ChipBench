@@ -30,7 +30,7 @@ module RefModule(
 			result_o <= {`ZeroWord,`ZeroWord};
 		end else begin
 		  case (state)
-		  	`DivFree:			begin               //DivFree状态
+		  	`DivFree:			begin               //DivFree state
 		  		if(start_i == `DivStart && annul_i == 1'b0) begin
 		  			if(opdata2_i == `ZeroWord) begin
 		  				state <= `DivByZero;
@@ -56,11 +56,11 @@ module RefModule(
 						result_o <= {`ZeroWord,`ZeroWord};
 				  end          	
 		  	end
-		  	`DivByZero:		begin               //DivByZero状态
+		  	`DivByZero:		begin               //DivByZero state
          	dividend <= {`ZeroWord,`ZeroWord};
           state <= `DivEnd;		 		
 		  	end
-		  	`DivOn:				begin               //DivOn状态
+		  	`DivOn:				begin               //DivOn state
 		  		if(annul_i == 1'b0) begin
 		  			if(cnt != 6'b100000) begin
                if(div_temp[32] == 1'b1) begin
@@ -83,7 +83,7 @@ module RefModule(
 		  			state <= `DivFree;
 		  		end	
 		  	end
-		  	`DivEnd:			begin               //DivEnd状态
+		  	`DivEnd:			begin               //DivEnd state
         	result_o <= {dividend[64:33], dividend[31:0]};  
           ready_o <= `DivResultReady;
           if(start_i == `DivStop) begin

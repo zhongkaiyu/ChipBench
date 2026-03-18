@@ -24,10 +24,26 @@ RUN apt-get update && apt-get install -y \
     python3.11-venv \
     python3.11-dev \
     python3-pip \
+    # Yosys build dependencies
+    clang \
+    tcl-dev \
+    libreadline-dev \
+    libffi-dev \
+    zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set Python 3.11 as default
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+
+# Install Yosys from source (for CXXRTL support)
+RUN git clone https://github.com/YosysHQ/yosys.git /tmp/yosys && \
+    cd /tmp/yosys && \
+    git checkout v0.60 && \
+    git submodule update --init --recursive && \
+    make config-clang && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && rm -rf /tmp/yosys
 
 # Install ICARUS Verilog v12
 RUN git clone https://github.com/steveicarus/iverilog.git /tmp/iverilog && \

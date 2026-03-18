@@ -1,0 +1,13 @@
+# DESCRIPTION: Verilator output: Timestamp data for --skip-identical.  Delete at will.
+C "--cc ref.sv --top-module RefModule --prefix VRefModule -Wno-fatal -Wno-WIDTH -Wno-UNUSED -Wno-UNDRIVEN -Wno-UNOPTFLAT -Wno-DECLFILENAME"
+S   7552672    87315  1773790989   119775003  1598506306           0 "/usr/bin/verilator_bin"
+T      4504      749  1773808428   316568837  1773808428   316568837 "obj_dir/VRefModule.cpp"
+T      2724      747  1773808428   315836589  1773808428   315836589 "obj_dir/VRefModule.h"
+T      1447      751  1773808428   317592167  1773808428   317592167 "obj_dir/VRefModule.mk"
+T      1835      748  1773808428   316353504  1773808428   316353504 "obj_dir/VRefModule__Slow.cpp"
+T       559      745  1773808428   315186216  1773808428   315186216 "obj_dir/VRefModule__Syms.cpp"
+T       809      746  1773808428   315410673  1773808428   315410673 "obj_dir/VRefModule__Syms.h"
+T       264      752  1773808428   317912875  1773808428   317912875 "obj_dir/VRefModule__ver.d"
+T         0        0  1773808428   319958536  1773808428   319958536 "obj_dir/VRefModule__verFiles.dat"
+T      1562      750  1773808428   317418543  1773808428   317418543 "obj_dir/VRefModule_classes.mk"
+S       242      741  1773808428   260310027  1773808428   259948987 "ref.sv"

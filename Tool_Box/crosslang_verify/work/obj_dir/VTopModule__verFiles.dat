@@ -1,0 +1,13 @@
+# DESCRIPTION: Verilator output: Timestamp data for --skip-identical.  Delete at will.
+C "--cc dut.sv --top-module TopModule --prefix VTopModule --exe testbench.cpp -CFLAGS -std=c++14 -I. -Wno-fatal -Wno-WIDTH -Wno-UNUSED -Wno-UNDRIVEN -Wno-UNOPTFLAT -Wno-DECLFILENAME -o sim"
+S   7552672    87315  1773790989   119775003  1598506306           0 "/usr/bin/verilator_bin"
+S       242      742  1773808428   261263441  1773808428   261121150 "dut.sv"
+T      4504      758  1773808428   363822795  1773808428   363822795 "obj_dir/VTopModule.cpp"
+T      2724      756  1773808428   363213672  1773808428   363213672 "obj_dir/VTopModule.h"
+T      1790      760  1773808428   364169503  1773808428   364169503 "obj_dir/VTopModule.mk"
+T      1835      757  1773808428   363606463  1773808428   363606463 "obj_dir/VTopModule__Slow.cpp"
+T       559      754  1773808428   362839465  1773808428   362839465 "obj_dir/VTopModule__Syms.cpp"
+T       809      755  1773808428   363016298  1773808428   363016298 "obj_dir/VTopModule__Syms.h"
+T       264      761  1773808428   364533252  1773808428   364533252 "obj_dir/VTopModule__ver.d"
+T         0        0  1773808428   365497333  1773808428   365497333 "obj_dir/VTopModule__verFiles.dat"
+T      1562      759  1773808428   364014378  1773808428   364014378 "obj_dir/VTopModule_classes.mk"

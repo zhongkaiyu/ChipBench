@@ -14,18 +14,21 @@ using namespace cxxrtl_yosys;
 namespace cxxrtl_design {
 
 // \top: 1
-// \src: /workspace/verilogeval/Tool_Box/verilog/dut.sv:1.1-11.10
+// \src: /tmp/multi_test/dut.sv:8.1-19.10
 struct p_TopModule : public module {
-	// \src: /workspace/verilogeval/Tool_Box/verilog/dut.sv:5.25-5.26
+	// \src: /tmp/multi_test/dut.sv:11.22-11.23
 	/*output*/ wire<4> p_Q;
-	// \src: /workspace/verilogeval/Tool_Box/verilog/dut.sv:3.25-3.30
+	// \src: /tmp/multi_test/dut.sv:10.11-10.16
 	/*input*/ value<1> p_rst__n;
-	// \src: /workspace/verilogeval/Tool_Box/verilog/dut.sv:2.25-2.28
+	// \src: /tmp/multi_test/dut.sv:9.11-9.14
 	/*input*/ value<1> p_clk;
 	value<1> prev_p_clk;
 	bool posedge_p_clk() const {
 		return !prev_p_clk.slice<0>().val() && p_clk.slice<0>().val();
 	}
+	// \hdlname: core Q_out
+	// \src: /tmp/multi_test/dut.sv:3.18-3.23
+	/*outline*/ value<4> p_core_2e_Q__out;
 	p_TopModule(interior) {}
 	p_TopModule() {
 		reset();
@@ -49,6 +52,7 @@ struct p_TopModule : public module {
 	}
 
 	void debug_eval();
+	debug_outline debug_eval_outline { std::bind(&p_TopModule::debug_eval, this) };
 
 	void debug_info(debug_items *items, debug_scopes *scopes, std::string path, metadata_map &&cell_attrs = {}) override;
 }; // struct p_TopModule
@@ -59,7 +63,7 @@ void p_TopModule::reset() {
 bool p_TopModule::eval(performer *performer) {
 	bool converged = true;
 	bool posedge_p_clk = this->posedge_p_clk();
-	// cells $procdff$8 $not$/workspace/verilogeval/Tool_Box/verilog/dut.sv:9$3
+	// cells $procdff$9 $flatten\core.$not$/tmp/multi_test/dut.sv:5$1
 	if (posedge_p_clk) {
 		p_Q.next = not_u<1>(p_Q.curr.slice<0>().val()).concat(p_Q.curr.slice<3,1>()).val();
 	}
@@ -70,6 +74,9 @@ bool p_TopModule::eval(performer *performer) {
 }
 
 void p_TopModule::debug_eval() {
+	// \src: /tmp/multi_test/dut.sv:5.21-5.29
+	// cell $flatten\core.$not$/tmp/multi_test/dut.sv:5$1
+	p_core_2e_Q__out = not_u<1>(p_Q.curr.slice<0>().val()).concat(p_Q.curr.slice<3,1>()).val();
 }
 
 CXXRTL_EXTREMELY_COLD
@@ -78,13 +85,17 @@ void p_TopModule::debug_info(debug_items *items, debug_scopes *scopes, std::stri
 	if (scopes) {
 		scopes->add(path.empty() ? path : path.substr(0, path.size() - 1), "TopModule", metadata_map({
 			{ "top", UINT64_C(1) },
-			{ "src", "/workspace/verilogeval/Tool_Box/verilog/dut.sv:1.1-11.10" },
+			{ "src", "/tmp/multi_test/dut.sv:8.1-19.10" },
 		}), std::move(cell_attrs));
+		scopes->add(path, "core", "lfsr_core", "src\000s/tmp/multi_test/dut.sv:1.1-6.10\000", "src\000s/tmp/multi_test/dut.sv:14.15-14.45\000");
 	}
 	if (items) {
-		items->add(path, "Q", "src\000s/workspace/verilogeval/Tool_Box/verilog/dut.sv:5.25-5.26\000", p_Q, 0, debug_item::OUTPUT|debug_item::DRIVEN_SYNC);
-		items->add(path, "rst_n", "src\000s/workspace/verilogeval/Tool_Box/verilog/dut.sv:3.25-3.30\000", p_rst__n, 0, debug_item::INPUT|debug_item::UNDRIVEN);
-		items->add(path, "clk", "src\000s/workspace/verilogeval/Tool_Box/verilog/dut.sv:2.25-2.28\000", p_clk, 0, debug_item::INPUT|debug_item::UNDRIVEN);
+		items->add(path, "core Q_in", "src\000s/tmp/multi_test/dut.sv:2.17-2.21\000", debug_alias(), p_Q);
+		items->add(path, "core Q_out", "src\000s/tmp/multi_test/dut.sv:3.18-3.23\000", debug_eval_outline, p_core_2e_Q__out);
+		items->add(path, "next_Q", "src\000s/tmp/multi_test/dut.sv:13.16-13.22\000", debug_eval_outline, p_core_2e_Q__out);
+		items->add(path, "Q", "src\000s/tmp/multi_test/dut.sv:11.22-11.23\000", p_Q, 0, debug_item::OUTPUT|debug_item::DRIVEN_SYNC);
+		items->add(path, "rst_n", "src\000s/tmp/multi_test/dut.sv:10.11-10.16\000", p_rst__n, 0, debug_item::INPUT|debug_item::UNDRIVEN);
+		items->add(path, "clk", "src\000s/tmp/multi_test/dut.sv:9.11-9.14\000", p_clk, 0, debug_item::INPUT|debug_item::UNDRIVEN);
 	}
 }
 

@@ -6,11 +6,17 @@ from tools.reset import is_reset_signal, is_active_low_reset
 
 
 def test_extract_ports_from_verilog():
-    inputs, outputs = extract_ports_from_verilog("/workspace/verilogeval/Tool_Box/verilog/dut.sv")
-    assert inputs == [("clk", 1), ("rst_n", 1)]
-    assert outputs == [("Q", 4)]
+    """Multi-module file: extracts ports from ALL modules."""
+    inputs, outputs = extract_ports_from_verilog("/workspace/verilogeval/Tool_Box/verilog/ref.sv")
+    # lfsr_core has (Q_in, Q_out), RefModule has (clk, rst_n, Q)
+    assert ("clk", 1) in inputs
+    assert ("rst_n", 1) in inputs
+    assert ("Q_in", 4) in inputs
+    assert ("Q", 4) in outputs
+    assert ("Q_out", 4) in outputs
 
 def test_extract_ports_from_json():
+    """JSON only has the top-level ports (no submodule ports)."""
     inputs, outputs = extract_ports_from_json("/workspace/verilogeval/Tool_Box/verilog/ports.json")
     assert inputs == [("clk", 1), ("rst_n", 1)]
     assert outputs == [("Q", 4)]
@@ -265,3 +271,18 @@ def test_generate_testbench_only_cxxrtl():
     assert "cxxrtl_design" in code
     assert "python_errors" not in code
     assert "CXXRTL:" in code and "PASS" in code
+
+
+from src.run_verification import run_verification
+
+def test_end_to_end_multi_module():
+    """End-to-end: multi-module ref.sv + dut.sv, multi-class dut.py, all 3 DUTs."""
+    ret = run_verification(
+        ref_sv="/workspace/verilogeval/Tool_Box/verilog/ref.sv",
+        dut_sv="/workspace/verilogeval/Tool_Box/verilog/dut.sv",
+        dut_cc="/workspace/verilogeval/Tool_Box/cxxrtl/dut.cc",
+        dut_py="/workspace/verilogeval/Tool_Box/python/dut.py",
+        json_file="/workspace/verilogeval/Tool_Box/verilog/ports.json",
+        work_dir="/tmp/test_e2e_multi",
+    )
+    assert ret == 0

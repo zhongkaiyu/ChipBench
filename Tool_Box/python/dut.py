@@ -1,14 +1,18 @@
+class LFSRCore:
+    def compute(self, Q):
+        new_bit3 = (~Q) & 1
+        shifted = (Q >> 1) & 0x7
+        return ((new_bit3 << 3) | shifted) & 0xF
+
+
 class TopModule:
     def __init__(self):
         self.Q = 0
+        self.core = LFSRCore()
 
     def eval(self, inputs):
-        rst_n = inputs.get("rst_n", 1)
-        if rst_n == 0:
+        if inputs.get("rst_n", 1) == 0:
             self.Q = 0
         else:
-            old_Q = self.Q & 0xF
-            new_bit3 = (~old_Q) & 1
-            shifted = (old_Q >> 1) & 0x7
-            self.Q = ((new_bit3 << 3) | shifted) & 0xF
+            self.Q = self.core.compute(self.Q)
         return {"Q": self.Q}

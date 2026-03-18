@@ -70,3 +70,4 @@ typing_extensions==4.15.0
 urllib3==2.5.0
 yarl==1.22.0
 zstandard==0.25.0
+pytest==8.3.4

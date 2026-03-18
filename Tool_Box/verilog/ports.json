@@ -1,0 +1,18 @@
+{
+    "inputs": [
+        {
+            "name": "clk",
+            "width": 1
+        },
+        {
+            "name": "rst_n",
+            "width": 1
+        }
+    ],
+    "outputs": [
+        {
+            "name": "Q",
+            "width": 4
+        }
+    ]
+}

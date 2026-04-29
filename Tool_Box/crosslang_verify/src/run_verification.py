@@ -108,6 +108,8 @@ def _build_and_run(ref_basename, dut_basename, has_cxxrtl):
         "verilator", "--cc", ref_basename,
         "--top-module", "RefModule",
         "--prefix", "VRefModule",
+        "--x-initial", "unique",
+        "--x-assign", "unique",
         *VERILATOR_WARNS,
     ]
     # If no DUT Verilog, attach --exe to ref (we still need to compile testbench.cpp)
@@ -127,6 +129,8 @@ def _build_and_run(ref_basename, dut_basename, has_cxxrtl):
             "--prefix", "VTopModule",
             "--exe", "testbench.cpp",
             "-CFLAGS", cflags,
+            "--x-initial", "unique",
+            "--x-assign", "unique",
             *VERILATOR_WARNS,
             "-o", "sim",
         ]

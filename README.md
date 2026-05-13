@@ -5,14 +5,7 @@ docker build -t verilogeval:v2 .
 docker run -it --name your-perfect-dokcer-name -v $(pwd):/workspace/verilogeval verilogeval:v2
 ```
 
-# Contact  
 
-If you have any questions or would like further information, please feel free to contact us at 
-<a href="mailto:zhy055@ucsd.edu">zhy055@ucsd.edu</a> and 
-<a href="mailto:cz2791@columbia.edu">cz2791@columbia.edu</a>. 
-You can also visit our homepages for more details about our work: 
-<a href="https://zhongkaiyu.github.io/" target="_blank">Zhongkai Yu</a> and 
-<a href="https://chz05.github.io/" target="_blank">Chenyang Zhou</a>. 
 
 # Overview
 
@@ -65,3 +58,13 @@ Evaluation can be sped up by providing the `-j` flag to make, such as `-j4` to r
 Valid models are listed at the top of `scripts/sv-generate`. The number of in-context learning examples can be between 0-4, and given with `--with-examples`. Samples to collect per problem are given by `--with-samples`. Finally, model temperature and top_p can be set to --with-temperature and --with-top-p, respectively.
 
 These parameters can be easily swept with a shell script, to create separate build directories for each evaluation harness configuration target. 
+
+
+# Contact  
+
+If you have any questions or would like further information, please feel free to contact us at 
+<a href="mailto:zhy055@ucsd.edu">zhy055@ucsd.edu</a> and 
+<a href="mailto:cz2791@columbia.edu">cz2791@columbia.edu</a>. 
+You can also visit our homepages for more details about our work: 
+<a href="https://zhongkaiyu.github.io/" target="_blank">Zhongkai Yu</a> and 
+<a href="https://chz05.github.io/" target="_blank">Chenyang Zhou</a>. 

@@ -55,7 +55,7 @@ always @(posedge clk or negedge rst_n ) begin
 	if(!rst_n) 
 		data_cnt <= 'd0;
 	else if(valid_a && ready_a)
-		data_cnt <= (data_cnt == 3'd4) ? 'd0 : (data_cnt + 1'd1);
+		data_cnt <= (data_cnt == 2'd2) ? 'd0 : (data_cnt + 1'd1);
 end
 always @(posedge clk or negedge rst_n ) begin
 	if(!rst_n) 

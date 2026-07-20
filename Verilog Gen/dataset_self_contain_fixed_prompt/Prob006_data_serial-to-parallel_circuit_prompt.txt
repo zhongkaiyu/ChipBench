@@ -1,0 +1,31 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - input  valid_a
+ - input  data_a
+ - output ready_a
+ - output valid_b
+ - output data_b (6 bits)
+
+The module should implement a serial-to-parallel conversion circuit that
+converts single-bit input data into 6-bit parallel output data. The circuit
+uses different handshake protocols for input and output interfaces.
+
+The serial-to-parallel conversion should work as follows:
+- Input interface: Uses valid-ready handshake mechanism
+  - valid_a indicates the validity of input data_a
+  - ready_a indicates the module is always ready to receive upstream data
+- Output interface: Uses valid-only handshake mechanism
+  - valid_b indicates the validity of output data_b
+  - data_b is the 6-bit parallel output data
+
+Data conversion process:
+- The module receives single-bit input data_a when valid_a is high
+- After receiving 6 input data bits, the module outputs the concatenated
+  6-bit data_b with valid_b asserted
+- The first received data bit should be placed in the LSB (bit 0) of data_b
+- The last received data bit should be placed in the MSB (bit 5) of data_b
+- ready_a is always high indicates the module is always ready to receive input data

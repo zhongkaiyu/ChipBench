@@ -17,6 +17,7 @@ module stimulus_gen (
 		set = 0;
 		set_num = 0;
 		repeat(10) @(posedge clk);
+		@(negedge clk);
 		rst_n = 1;
 		@(posedge clk);
 		
@@ -25,24 +26,31 @@ module stimulus_gen (
 		repeat(20) @(posedge clk); // Count: 0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,0,1,2,3
 		
 		// Test set operation
+		@(negedge clk);
 		set = 1;
-		set_num = 4'hA; @(posedge clk); // Set to A
-		set_num = 4'h5; @(posedge clk); // Set to 5
-		set_num = 4'hF; @(posedge clk); // Set to F
+		set_num = 4'hA; // Set to A
+		@(negedge clk);
+		set_num = 4'h5; // Set to 5
+		@(negedge clk);
+		set_num = 4'hF; // Set to F
+		@(negedge clk);
 		set = 0;
 		@(posedge clk);
 		// Test set to 0 (should trigger zero signal)
+		@(negedge clk);
 		set = 1;
-		set_num = 4'h0; @(posedge clk); // Set to 0
+		set_num = 4'h0; // Set to 0
+		@(negedge clk);
 		set = 0;
 		@(posedge clk);
 			
 		// Random testing
-		repeat(200) @(posedge clk, negedge clk) begin
-			set <= $random;
-			set_num <= $random % 16;
+		repeat(200) @(negedge clk) begin
+			set = $random;
+			set_num = $random % 16;
 		end
 		
+		@(posedge clk);
 		#1 $finish;
 	end
 	// === End your code here ===

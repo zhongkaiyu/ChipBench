@@ -13,8 +13,16 @@ module RefModule (
 );
 
     // General CPU declarations
-    reg reading_instruction;                    // Whether the current data access is for instruction or memory
-    reg [`WORD_SIZE-1:0] PC, nextPC;            // Update PC to nextPC at every posedge clk
+    localparam FETCH = 3'd0;
+    localparam EXECUTE = 3'd1;
+    localparam MEMORY_READ = 3'd2;
+    localparam MEMORY_WRITE = 3'd3;
+    localparam WRITE_BACK = 3'd4;
+    localparam INPUT_READ = 3'd5;
+    localparam HALT = 3'd6;
+
+    reg [2:0] state;
+    reg [`WORD_SIZE-1:0] PC, nextPC;
     reg [`WORD_SIZE-1:0] instruction, dataReg;  // Because data is only available for a short time, we need to save it.
     
     // Control signals from control module
@@ -23,6 +31,9 @@ module RefModule (
     
     // RF related declarations
     wire [`WORD_SIZE-1:0] ReadData1, ReadData2;
+    wire [1:0] WriteAddress;
+    wire [`WORD_SIZE-1:0] WriteData;
+    wire WriteEnable;
     
     // ALU related declarations
     wire bcond;
@@ -42,15 +53,27 @@ module RefModule (
                     .RegWrite(RegWrite),
                     .OpenPort(OpenPort));
                     
-    RF rf(.write(RegWrite),
+    assign WriteAddress = (instruction[15:12] == `OPCODE_JAL) ? 2'd3 :
+                          (RegDst ? instruction[7:6] : instruction[9:8]);
+    assign WriteData = (instruction[15:12] == `OPCODE_JAL ||
+                        (instruction[15:12] == `OPCODE_R && instruction[5:0] == `FUNC_JRL)) ? PC + 1'b1 :
+                       ((state == WRITE_BACK) ? dataReg : ALUResult);
+    assign WriteEnable = (state == WRITE_BACK) ||
+                         (state == EXECUTE && RegWrite && !MemtoReg && !MemWrite &&
+                          !(instruction[15:12] == `OPCODE_R &&
+                            (instruction[5:0] == `FUNC_RWD || instruction[5:0] == `FUNC_WWD ||
+                             instruction[5:0] == `FUNC_JPR || instruction[5:0] == `FUNC_HLT ||
+                             instruction[5:0] == `FUNC_ENI || instruction[5:0] == `FUNC_DSI)));
+
+    RF rf(.write(WriteEnable),
           .clk(clk),
           .reset_n(reset_n),
           .addr1(instruction[11:10]),
           .addr2(instruction[9:8]),
-          .addr3(RegDst ? instruction[7:6] : instruction[9:8]), // Write address either rt or rd
+          .addr3(WriteAddress),
           .data1(ReadData1),
           .data2(ReadData2),
-          .data3(MemtoReg ? dataReg : ALUResult));
+          .data3(WriteData));
           
     ALU alu(.A(ReadData1),
             .B(ALUSrc ? {{8{instruction[7]}}, instruction[7:0]} : ReadData2),   // Either sign-extended immediate or second register read from RF.
@@ -59,41 +82,85 @@ module RefModule (
             .bcond(bcond));
     
     always @(*) begin
-        if (Jump) nextPC = {PC[15:12], instruction[11:0]};  // Jumping to target (12 bit), concatenated with the upper 4 bits of PC.
+        if (instruction[15:12] == `OPCODE_R &&
+            (instruction[5:0] == `FUNC_JPR || instruction[5:0] == `FUNC_JRL))
+            nextPC = ReadData1;
+        else if (Jump) nextPC = {PC[15:12], instruction[11:0]};  // Jumping to target (12 bit), concatenated with the upper 4 bits of PC.
         else if (Branch & bcond) nextPC = PC + {{8{instruction[7]}}, instruction[7:0]}; // Branching to PC + sign-extend(immediate)
         else nextPC = PC + 1;   // Next instruction
     end
-    
+
+    always @(*) begin
+        readM = 1'b0;
+        address = PC;
+
+        if (reset_n) begin
+            case (state)
+                FETCH: readM = 1'b1;
+                MEMORY_READ: begin
+                    readM = 1'b1;
+                    address = ALUResult;
+                end
+                MEMORY_WRITE: address = ALUResult;
+            endcase
+        end
+    end
+
+    assign data = (state == MEMORY_WRITE) ? ReadData2 : `WORD_SIZE'bz;
+
     // Only open when OpenPort is asserted by the control module
-    assign output_port = OpenPort ? ReadData1 : `WORD_SIZE'bz;
-  
+    assign output_port = (state == EXECUTE && OpenPort) ? ReadData1 : `WORD_SIZE'bz;
+
     always @(posedge clk, negedge reset_n) begin
         if (!reset_n) begin     // Asynchronous active low reset
             PC <= 0;
-            nextPC <= 0;
-            num_inst <= 1;
+            instruction <= 0;
+            dataReg <= 0;
+            num_inst <= 0;
+            state <= FETCH;
         end else begin
-            PC <= nextPC;
-            num_inst <= num_inst + 1;
-        end
-    end
-    
-    // When PC updates, assert readM for instruction fetch
-    always @(PC) begin
-        address = PC;
-        readM = 1;
-        reading_instruction = 1;
-    end
-    
-    // When inputReady changes from 0 to 1
-    always @(posedge inputReady) begin
-        if (reading_instruction) begin  // instruction fetch mode
-            instruction <= data;
-            readM <= 0;
-            reading_instruction <= 0;   // deassert since instruction fetch is done
-        end else begin                  // data fetch mode
-            dataReg <= data;
-            readM <= 0;
+            case (state)
+                FETCH: begin
+                    if (inputReady) begin
+                        instruction <= data;
+                        state <= EXECUTE;
+                    end
+                end
+                EXECUTE: begin
+                    if (instruction[15:12] == `OPCODE_R && instruction[5:0] == `FUNC_HLT) begin
+                        num_inst <= num_inst + 1'b1;
+                        state <= HALT;
+                    end else if (MemtoReg) begin
+                        state <= MEMORY_READ;
+                    end else if (MemWrite) begin
+                        state <= MEMORY_WRITE;
+                    end else if (instruction[15:12] == `OPCODE_R && instruction[5:0] == `FUNC_RWD) begin
+                        state <= INPUT_READ;
+                    end else begin
+                        PC <= nextPC;
+                        num_inst <= num_inst + 1'b1;
+                        state <= FETCH;
+                    end
+                end
+                MEMORY_READ, INPUT_READ: begin
+                    if (inputReady) begin
+                        dataReg <= data;
+                        state <= WRITE_BACK;
+                    end
+                end
+                MEMORY_WRITE: begin
+                    PC <= nextPC;
+                    num_inst <= num_inst + 1'b1;
+                    state <= FETCH;
+                end
+                WRITE_BACK: begin
+                    PC <= nextPC;
+                    num_inst <= num_inst + 1'b1;
+                    state <= FETCH;
+                end
+                HALT: state <= HALT;
+                default: state <= FETCH;
+            endcase
         end
     end
 

@@ -250,10 +250,11 @@ module tb();
 		$display("Mismatches: %1d in %1d samples", stats1.errors, stats1.clocks);
 	end
 
-	assign tb_match = ({readM_ref, address_ref, num_inst_ref, output_port_ref} ===
-		({readM_ref, address_ref, num_inst_ref, output_port_ref} ^
-		 {readM_dut, address_dut, num_inst_dut, output_port_dut} ^
-		 {readM_ref, address_ref, num_inst_ref, output_port_ref}));
+	assign tb_match = ({readM_ref, address_ref, num_inst_ref} ===
+		({readM_ref, address_ref, num_inst_ref} ^
+		 {readM_dut, address_dut, num_inst_dut} ^
+		 {readM_ref, address_ref, num_inst_ref})) &&
+		(output_port_ref === output_port_dut);
 
 	always @(posedge clk, negedge clk) begin
 		stats1.clocks++;
@@ -282,7 +283,7 @@ module tb();
 			stats1.errors_num_inst++;
 		end
 
-		if (output_port_ref !== (output_port_ref ^ output_port_dut ^ output_port_ref)) begin
+		if (output_port_ref !== output_port_dut) begin
 			if (stats1.errors_output_port == 0)
 				stats1.errortime_output_port = $time;
 			stats1.errors_output_port++;
@@ -297,4 +298,3 @@ module tb();
 	end
 
 endmodule
-

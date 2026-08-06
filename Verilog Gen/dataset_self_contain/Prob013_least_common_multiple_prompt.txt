@@ -26,3 +26,5 @@ The circuit should operate as follows:
 
 Assume all sequential logic is triggered on the positive edge of the clock.
 
+Clarification: After the iterative reduction detects A==B, the FSM spends one additional dedicated Finish cycle in which the result output is latched to the converged value and vld_out is pulsed high for exactly that one cycle - the result and the valid pulse appear one clock cycle after equality is reached, not in the same cycle.
+

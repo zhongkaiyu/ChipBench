@@ -28,3 +28,5 @@ Data conversion process:
   with valid_out asserted in the next clock cycle
 - If only one data input is received, the module waits for the second input
   before producing any output
+
+Clarification: Process inputs in groups of three 8-bit inputs, producing two 12-bit outputs per group (no bits are dropped). On the 2nd input of each group, output {first_byte, second_byte[7:4]} with valid_out high; on the 3rd input, output {second_byte[3:0], third_byte} with valid_out high.

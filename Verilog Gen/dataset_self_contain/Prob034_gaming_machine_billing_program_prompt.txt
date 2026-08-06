@@ -37,3 +37,5 @@ Gaming machine operation:
 - Red warning: Active when remain < 1 for normal mode, remaon < 2 for boost mode
   (insufficient funds)
 - Reset behavior: Active low reset to initial state
+
+Clarification: When set=1, money is added and NO deduction occurs that cycle (charging and deduction are mutually exclusive per cycle; charging takes priority). The yellow and red warning outputs are registered - they update on the clock edge and reflect the previous cycle's remaining balance, not combinational.

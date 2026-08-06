@@ -33,7 +33,7 @@ end
 always @(posedge clk or negedge rst_n ) begin
 	if(!rst_n) 
 		data_out <= 'd0;
-	else if(valid_a && ready_a && (data_cnt == 2'd0))
+	else if(ready_b && valid_a && ready_a && (data_cnt == 2'd0))
 		data_out <= data_in;
 	else if(valid_a && ready_a)
 		data_out <= data_out + data_in;

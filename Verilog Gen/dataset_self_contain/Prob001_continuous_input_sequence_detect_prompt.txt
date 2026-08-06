@@ -21,3 +21,5 @@ The module should implement an 8-bit shift register that shifts in the input `a`
    - If the shift register does not match this pattern, the output `match` should remain de-asserted (logic 0).
 
 The design must operate synchronously with the clock and use a negative edge active reset (`rst_n`). Ensure the module correctly implements this functionality.
+
+Clarification: match is a registered output. On each clock edge, match is set to the result of comparing the value the shift register held as of the previous clock edge against the target pattern, so match lags the shift register by one additional cycle (1-cycle latency).

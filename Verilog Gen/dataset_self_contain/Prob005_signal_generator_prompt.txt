@@ -17,9 +17,13 @@ When wave_choice = 2: Generate a triangular wave signal
 
 The waveform generation should work as follows:
 - The wave output should be a 5-bit signal that cycles through different
-  values to create the desired waveform patterns
+  values to create the desired waveform patterns. wave takes integer values
+  0 to 20 (decimal); it never uses the full 5-bit 0-31 range.
 - Each waveform should complete one full cycle and then repeat
-- The square wave should alternate between high and low values
-- The sawtooth wave should increment from 0 to maximum value and then reset
-- The triangular wave should increment from 0 to maximum, then decrement back to 0
+- The square wave should alternate between high and low values: square = 20
+  for 10 clocks, then 0 for 10 clocks (period 20 cycles, 50% duty).
+- The sawtooth wave should increment from 0 to maximum value (20) and then
+  reset: sawtooth counts 0->1->...->20, then wraps to 0.
+- The triangular wave should increment from 0 to maximum (20), then decrement
+  back to 0: triangle ramps 0->20 then 20->0, one step per clock.
 

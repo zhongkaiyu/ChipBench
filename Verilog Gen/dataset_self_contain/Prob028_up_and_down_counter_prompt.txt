@@ -25,3 +25,5 @@ Counter operation:
 - Mode = 0: Counter decrements each clock cycle (9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9, ...)
 - Zero detection: The zero signal is high for next cycle only when number equals 0
 - Reset behavior: Active low reset to 0
+
+Clarification: zero is a registered flag asserted in the cycle immediately AFTER number equals 0. Register zero from the present value of number (zero becomes 1 on the clock edge following the one where number is 0), not from the next/predicted counter value.

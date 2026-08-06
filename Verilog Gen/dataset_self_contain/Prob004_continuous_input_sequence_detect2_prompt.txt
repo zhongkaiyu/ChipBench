@@ -26,3 +26,5 @@ Output Logic for match signal:
 - When reset is active (rst_n = 0): match = 0
 - When reset is inactive (rst_n = 1) AND sequence is 0110: match = 1
 - When reset is inactive (rst_n = 1) AND sequence is NOT 0110: match = 0
+
+Clarification: Use a Moore output. Provide a dedicated accept state for the sequence 0110 and assert match combinationally from the current state only, so match goes high the clock cycle after the final valid 0 has been registered (not in the same cycle the bit is presented).

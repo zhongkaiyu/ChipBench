@@ -29,3 +29,5 @@ Counter operation:
 - Set operation: When set is active, number is set to set_num value
 - Zero detection: The zero signal is high only when number equals 0
 - Reset behavior: Active low reset to 0
+
+Clarification: number is a registered copy of the internal counter, delayed by one additional clock cycle. Maintain the count (increment/set/reset) in an internal register, then on the next clock edge drive number (and the zero flag derived from it) from that internal value, so number lags the internally counted value by exactly one cycle.

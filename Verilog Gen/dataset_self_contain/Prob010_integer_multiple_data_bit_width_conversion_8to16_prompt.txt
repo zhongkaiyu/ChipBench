@@ -29,3 +29,5 @@ Data conversion process:
 - If only one data input is received, the module waits for the second input
   before producing any output
 
+Clarification: valid_out and data_out are asserted on the clock edge immediately following receipt of the second 8-bit input (exactly one register stage / one cycle of latency), with no additional buffering or pipeline stage.
+

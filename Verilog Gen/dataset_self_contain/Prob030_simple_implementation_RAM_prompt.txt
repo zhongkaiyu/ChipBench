@@ -24,3 +24,5 @@ write_data to the location specified by write_addr.
 The rst_n signal is an active-low asynchronous reset signal. Assume all
 sequential logic is triggered on the positive edge of the clock.
 
+Clarification: The read is synchronous (registered). On the rising clock edge, if read_en is asserted, read_data is updated to the contents of read_addr (one-cycle read latency); if read_en is deasserted, read_data holds its previous value. The asynchronous reset clears read_data to 0.
+

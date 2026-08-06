@@ -26,3 +26,5 @@ The output signals `match` and `not_match` should be implemented as follows:
 - When `rst_n` is low, the module should reset to its initial state and begin sequence detection from the start.
 - On every positive clock edge (`clk`), the module should evaluate the input signal `data` and transition states accordingly.
 
+Clarification: match and not_match are combinational (Moore) functions of the current state only, not of the current input bit. Each completed 6-bit group produces exactly one pulse aligned to the group's 6th bit: match=1 for a matching group or not_match=1 for a non-matching group, regardless of which bit first diverged.
+

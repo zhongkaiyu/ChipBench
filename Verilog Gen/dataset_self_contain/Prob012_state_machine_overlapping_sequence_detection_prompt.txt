@@ -17,3 +17,5 @@ The sequence detection should work as follows:
 - Support overlapping detection: "10110111" should be detected twice
 - Output flag signal should be high for one clock cycle when the sequence
   is detected, starting from the next clock cycle after detection
+
+Clarification: The detector is a Moore machine and flag is a registered output. On the clock edge that completes 1011 the FSM enters the accept state, and flag is asserted on the following clock edge for exactly one cycle (a two-register-deep latency from the completing input bit). Overlapping matches are allowed.

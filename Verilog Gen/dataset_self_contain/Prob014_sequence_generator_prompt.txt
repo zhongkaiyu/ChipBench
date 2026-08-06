@@ -17,3 +17,5 @@ The circuit should generate the pattern as follows:
 The rst_n signal is an active-low reset signal. When reset is asserted,
 the sequence should restart from the beginning. Assume all sequential
 logic is triggered on the positive edge of the clock.
+
+Clarification: data is a registered output equal to bit 5 of a 6-bit register initialized to 001011 that rotates left (MSB-first) by one position each clock; because the output is registered it lags the rotation by one clock cycle. This fixes the post-reset phase and which bit appears in the first cycle after reset.

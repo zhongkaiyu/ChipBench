@@ -33,3 +33,5 @@ Beverage dispensing:
 - out2: Dispenses beverage 2 (2.5 yuan)
 - out3: Dispenses change (0.5 yuan coins only)
 
+Clarification: Treat d1 and d2 as level signals sampled on each rising clock edge - every clock cycle d1 is high adds 0.5 yuan and every cycle d2 is high adds 1 yuan. Do NOT add your own edge detection (the testbench already presents them as single-cycle pulses). Change (out3) is emitted in the same cycle as the beverage output (out1/out2), not on a following cycle.
+

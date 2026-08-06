@@ -21,4 +21,6 @@ Clock division behavior:
 - The output should be synchronized to the input clock clk_in
 - The division should be continuous and stable
 
+Clarification: Use a mod-7 counter on posedge clk_in. Generate clkp (posedge-clocked): set high when the counter==3 and low when counter==6. Generate clkn identically but clocked on negedge clk_in. The output is clk_out7 = clkp | clkn, which yields an exact 50% duty cycle with the high phase beginning at counter==3.
+
 

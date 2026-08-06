@@ -35,3 +35,5 @@ Traffic light operation:
 - Yellow light: 5 clock cycles, clock counts down from 5 to 1
 - Pedestrian request: Shortens green time to 10 cycles if remaining time > 10
 - Reset behavior: Active low reset to red state with clock = 10
+
+Clarification: The light outputs are double-registered relative to the counter: the state transition is evaluated when the countdown counter cnt equals 3 (not 1), the light-enable flags register on the next cycle, and the red/yellow/green outputs register one cycle after that, so each light change lags the counter reaching its terminal value by two clock cycles. The countdown reloads to 10 (red), 60 (green), or 5 (yellow) and decrements by 1 each cycle.

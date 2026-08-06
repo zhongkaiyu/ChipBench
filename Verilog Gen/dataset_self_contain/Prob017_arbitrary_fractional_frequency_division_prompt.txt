@@ -33,3 +33,5 @@ parameter c89 = 8'd24; // 8/9 clock switching point
 parameter div_e = 5'd8; //even period
 parameter div_o = 5'd9; //odd period
 
+Clarification: Within each divided period, clk_out is high while the in-period counter <= (div>>2)+1 (high for the first 3 input cycles of the period, low for the rest), where div is 8 for even periods and 9 for odd periods. Alternate even/odd period lengths using a cycle counter that flips the parity at cyc_cnt = c89-1 (23) and M_N-1 (86).
+

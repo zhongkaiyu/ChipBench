@@ -20,3 +20,5 @@ The pipelined multiplier should work as follows:
 - The pipeline allows new inputs to be processed every clock cycle while
   previous multiplications are still being completed
 - When rst_n is low, the multiplier should reset to 0
+
+Clarification: The pipeline has a fixed latency of exactly 2 clock cycles from input to mul_out: stage 1 registers the partial-product/partial-sum terms of the current inputs, and stage 2 registers their final sum into mul_out, so a result for inputs applied on a given cycle appears two cycles later.

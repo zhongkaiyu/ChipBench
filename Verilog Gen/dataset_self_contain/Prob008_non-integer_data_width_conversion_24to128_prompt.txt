@@ -27,3 +27,5 @@ Data conversion process:
 - After accumulating enough data to form a complete 128-bit word, the module
   outputs data_out with valid_out asserted
 
+Clarification: Maintain a running shift register and shift in each full 24-bit input on every valid input. Assert valid_out on the 6th, 11th, and 16th valid inputs (input-counter values 5, 10, 15, counting modulo 16). At those points form the 128-bit output by concatenating the accumulated bits with, respectively, data_in[23:16], data_in[23:8], and data_in[23:0], so that the 128-bit boundaries cut through the 24-bit words.
+

@@ -1,0 +1,26 @@
+I would like you to implement a module named TopModule with the following
+interface. All input and output ports are one bit unless otherwise
+specified.
+
+ - input  clk
+ - input  rst_n
+ - output reg [3:0] gray_out
+
+The module should implement a 4-bit Gray code counter. Assume all sequential
+logic is triggered on the positive edge of the clock. The reset input is active
+low asynchronous, and should reset the counter to 0.
+
+The Gray code counter should work as follows:
+- The counter should generate a 4-bit Gray code sequence
+- The counter increments every two clock cycles
+- The implementation should follow this process:
+  1. Input a Gray code value (use an internal wire variable initialized to 0)
+  2. Convert the Gray code to binary representation
+  3. Increment the binary value by 1
+  4. Convert the incremented binary back to Gray code
+  5. Output the resulting Gray code
+- Gray code is a binary numeral system where two successive values differ
+  in only one bit position
+- The counter should cycle through all 16 possible 4-bit Gray code values
+  and then repeat
+- When rst_n is low, the counter should reset to 0000

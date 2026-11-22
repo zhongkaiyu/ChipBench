@@ -153,8 +153,8 @@ always @(posedge rclk or negedge rrstn) begin
 	end
 end
 /**********************full empty gen*************************/
-assign wfull = (wptr == {~rptr_syn[ADDR_WIDTH:ADDR_WIDTH-1],rptr_syn[ADDR_WIDTH-2:0]});
-assign rempty = (rptr == wptr_syn);
+assign wfull = (waddr_gray == {~rptr_syn[ADDR_WIDTH:ADDR_WIDTH-1],rptr_syn[ADDR_WIDTH-2:0]});
+assign rempty = (raddr_gray == wptr_syn);
 
 /**********************RAM*************************/
 wire 	wen	;

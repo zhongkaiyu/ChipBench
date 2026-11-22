@@ -31,8 +31,9 @@ FIFO operation:
 - rempty indicates the FIFO is empty and has no data to read
 - The FIFO should handle clock domain crossing properly
 - wrstn and rrstn are asynchronous active-low resets, each for its own clock domain
-- wfull goes high one wclk edge after the write that fills the FIFO, and rempty one rclk edge after
-  the read that empties it; a write (read) at that edge is still accepted
+- wfull goes high right after the wclk edge that writes the last free entry, and rempty right after
+  the rclk edge that reads the last stored entry; no write is accepted while wfull is high and no
+  read while rempty is high
 - A pointer change reaches the other domain one edge of its own clock plus two edges of the other clock later
 
 

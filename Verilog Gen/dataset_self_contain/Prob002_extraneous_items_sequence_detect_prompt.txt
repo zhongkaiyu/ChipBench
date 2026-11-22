@@ -26,9 +26,9 @@ The match signal should be asserted when:
 - The middle 3 bits (bits 5:3) can be any value
 
 ### Timing and Behavior:
-- When rst_n is low, the module should reset to its initial state
+- When rst_n is low, the module should reset to its initial state asynchronously
 - On every positive clock edge (clk), the module should shift in the new input bit
 - The output match is updated sequentially
 - The detection is continuous - the module checks for the pattern on every clock cycle
 
-Clarification: match is produced with two cycles of latency. The front-half and back-half checks are each registered once and then ANDed together, so match asserts two clock cycles after the full 9-bit pattern is present in the shift register.
+Clarification: match is produced with two cycles of latency. The front-half and back-half checks are each registered once and then ANDed together, so match goes high on the second rising clk edge after the pattern's last bit is applied to a.

@@ -60,6 +60,46 @@ module stimulus_gen (
 			a <= $random;
 		end
 		
+		// Additional checks: "When rst_n is low, the module should reset to its initial state".
+		// A mid-run reset must clear the 9-bit history, so bits shifted in before the reset cannot
+		// complete a match afterwards. Inputs change at negedge; reset is asserted and released
+		// between edges while match is low; the first bits after reset are never "11", so reading
+		// the cleared history as zeros or as "no data yet" gives the same output.
+		repeat(12) @(negedge clk) a <= 0;           // flush: history all zeros, match low
+		@(negedge clk) a <= 0;                      // pre-reset bits 0,1,1,1,0,1
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;
+		@(negedge clk) a <= 1;
+		@(posedge clk);
+		#2 reset = 1;                               // assert reset between edges
+		@(negedge clk) a <= 0;
+		repeat(2) @(posedge clk);
+		#2 reset = 0;                               // release between edges
+		@(negedge clk) a <= 1;                      // post-reset bits 1,0,1,1,0: with the old
+		@(negedge clk) a <= 0;                      // history kept this reads 011101 + 110
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;
+		repeat(12) @(negedge clk) a <= 0;
+		// second round: pre-reset 0,1,1, reset, then 1,0,1,1,1,0
+		@(negedge clk) a <= 0;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(posedge clk);
+		#2 reset = 1;
+		@(negedge clk) a <= 0;
+		repeat(3) @(posedge clk);
+		#2 reset = 0;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;
+		repeat(12) @(negedge clk) a <= 0;
+		
 		#1 $finish;
 	end
 	// === End your code here ===

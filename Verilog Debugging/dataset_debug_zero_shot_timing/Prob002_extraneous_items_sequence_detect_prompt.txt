@@ -28,7 +28,7 @@ The match signal should be asserted when:
 ### Timing and Behavior:
 - When rst_n is low, the module should reset to its initial state
 - On every positive clock edge (clk), the module should shift in the new input bit
-- The output match is updated sequentially
+- The output match is updated sequentially: it goes high on the second rising clk edge after the pattern's last bit is applied to a
 - The detection is continuous - the module checks for the pattern on every clock cycle
 
 

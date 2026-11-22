@@ -28,30 +28,33 @@ module stimulus_gen (
 		reset = 1;
 		a = 0;
 		@(posedge clk);
-		reset = 0;
+		#2 reset = 0;           // release between edges
 		
 		wavedrom_start("Sequence Detection Test");
 		
-		// Test specific sequences for "011XXX110" pattern
-		@(posedge clk) a = 0;  // Start of 011101110
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 1;  // Middle bit 1
-		@(posedge clk) a = 0;  // Middle bit 0
-		@(posedge clk) a = 1;  // Middle bit 1
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 0;  // Should detect pattern here
+		// Test specific sequences for "011XXX110" pattern.
+		// a changes at negedge so it is stable at the posedge that samples it
+		// (a blocking write at posedge races with the DUT's always blocks).
+		@(negedge clk) a <= 0;  // Start of 011101110
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;  // Middle bit 1
+		@(negedge clk) a <= 0;  // Middle bit 0
+		@(negedge clk) a <= 1;  // Middle bit 1
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;  // Should detect pattern here
 		
-		@(posedge clk) a = 0;  // Start of 011001110
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 0;  // Middle bit 0
-		@(posedge clk) a = 0;  // Middle bit 0
-		@(posedge clk) a = 1;  // Middle bit 1
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 1;
-		@(posedge clk) a = 0;  // Should detect pattern here
+		@(negedge clk) a <= 0;  // Start of 011001110
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;  // Middle bit 0
+		@(negedge clk) a <= 0;  // Middle bit 0
+		@(negedge clk) a <= 1;  // Middle bit 1
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;  // Should detect pattern here
+		@(posedge clk);         // last bit sampled here; random phase keeps its old edges
 		
 		wavedrom_stop();
 		
@@ -66,24 +69,21 @@ module stimulus_gen (
 		// between edges while match is low; the first bits after reset are never "11", so reading
 		// the cleared history as zeros or as "no data yet" gives the same output.
 		repeat(12) @(negedge clk) a <= 0;           // flush: history all zeros, match low
-		@(negedge clk) a <= 0;                      // pre-reset bits 0,1,1,1,0,1
+		@(negedge clk) a <= 0;                      // pre-reset bits 0,1,1
 		@(negedge clk) a <= 1;
-		@(negedge clk) a <= 1;
-		@(negedge clk) a <= 1;
-		@(negedge clk) a <= 0;
 		@(negedge clk) a <= 1;
 		@(posedge clk);
 		#2 reset = 1;                               // assert reset between edges
 		@(negedge clk) a <= 0;
 		repeat(2) @(posedge clk);
 		#2 reset = 0;                               // release between edges
-		@(negedge clk) a <= 1;                      // post-reset bits 1,0,1,1,0: with the old
-		@(negedge clk) a <= 0;                      // history kept this reads 011101 + 110
-		@(negedge clk) a <= 1;
-		@(negedge clk) a <= 1;
+		@(negedge clk) a <= 0;                      // post-reset bits 0,1,1,0: if the history
+		@(negedge clk) a <= 1;                      // is kept and keeps shifting during reset
+		@(negedge clk) a <= 1;                      // this reads 011 + 00 + 0110
 		@(negedge clk) a <= 0;
 		repeat(12) @(negedge clk) a <= 0;
-		// second round: pre-reset 0,1,1, reset, then 1,0,1,1,1,0
+		// second round: pre-reset 0,1,1, reset, then 1,0,1,1,1,0; if the history is
+		// held during reset (not cleared) this reads 011 + 101110
 		@(negedge clk) a <= 0;
 		@(negedge clk) a <= 1;
 		@(negedge clk) a <= 1;

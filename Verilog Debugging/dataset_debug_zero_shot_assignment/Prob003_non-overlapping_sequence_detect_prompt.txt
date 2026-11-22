@@ -23,7 +23,7 @@ The output signals `match` and `not_match` should be implemented as follows:
 - The outputs are mutually exclusive - only one can be high at a time
 
 ### Timing and Behavior:
-- When `rst_n` is low, the module should reset to its initial state and begin sequence detection from the start.
+- When `rst_n` is low, the module should reset to its initial state and begin sequence detection from the start. Both outputs are `0` while `rst_n` is low.
 - On every positive clock edge (`clk`), the module should evaluate the input signal `data` and transition states accordingly.
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:

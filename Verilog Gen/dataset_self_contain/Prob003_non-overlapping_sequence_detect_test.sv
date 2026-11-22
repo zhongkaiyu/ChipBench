@@ -15,22 +15,25 @@ module stimulus_gen (
 
 	initial begin
 		// Initialize signals
-		rst_n = 1'b0;
+		rst_n = 1'b1;
 		data = 1'b0;
 
-		// Apply reset
+		// Apply reset. Asserted after time 0 so every design sees the falling edge, and released
+		// with a nonblocking write so the first posedge is still a reset edge for every design.
+		#1 rst_n = 1'b0;
 		@(posedge clk);
-		rst_n = 1'b1;
+		rst_n <= 1'b1;
 		@(posedge clk)
 		@(posedge clk)
 
 		// Test sequence: Provide the sequence "011100"
-		@(posedge clk) data = 1'b0; // First bit
-		@(posedge clk) data = 1'b1; // Second bit
-		@(posedge clk) data = 1'b1; // Third bit
-		@(posedge clk) data = 1'b1; // Fourth bit
-		@(posedge clk) data = 1'b0; // Fifth bit
-		@(posedge clk) data = 1'b0; // Sixth bit
+		// (nonblocking: a blocking write at posedge races with the DUT's always blocks)
+		@(posedge clk) data <= 1'b0; // First bit
+		@(posedge clk) data <= 1'b1; // Second bit
+		@(posedge clk) data <= 1'b1; // Third bit
+		@(posedge clk) data <= 1'b1; // Fourth bit
+		@(posedge clk) data <= 1'b0; // Fifth bit
+		@(posedge clk) data <= 1'b0; // Sixth bit
 
 		// Additional test cases
 		repeat(500) @(negedge clk) begin
@@ -43,21 +46,23 @@ module stimulus_gen (
 		// Additional checks, after all original stimulus. Inputs change on the falling edge only.
 		// (1) mid-run asynchronous reset: "When rst_n is low, the module should reset to its initial state
 		//     and begin sequence detection from the start" and "While rst_n is low, both outputs are 0".
-		//     The first rising edge with rst_n high after a mid-run reset evaluates data (only the first edge
-		//     after power-up consumes no bit), so groups restart at that bit.
+		//     The first rising edge with rst_n high after a mid-run reset evaluates data, so groups restart
+		//     at that bit.
 		// (2) after the restart, whole groups: matching groups back to back, groups that diverge at each bit
 		//     position, and a long run of random groups (half of them the target sequence).
 		for (int r = 0; r < 4; r++) begin
 			repeat (3 + r) @(negedge clk) data <= $random;  // stop part-way into a group
+			// release in the first half of a cycle, so the first rising edge with rst_n high
+			// samples the first bit of the send_group below (applied at the next falling edge)
 			if (r == 3) begin
 				// short pulse between two rising edges: asynchronous, so it still resets
-				@(negedge clk);
+				@(posedge clk);
 				#1 rst_n <= 1'b0;
 				#2 rst_n <= 1'b1;
 			end else begin
 				@(negedge clk) rst_n <= 1'b0;             // assert between rising edges
-				repeat (1 + r % 2) @(negedge clk);
-				rst_n <= 1'b1;                             // release between rising edges
+				repeat (1 + r % 2) @(posedge clk);
+				#2 rst_n <= 1'b1;                          // release between rising edges
 			end
 			send_group(6'b011100);
 			send_group(6'b011100);

@@ -31,61 +31,61 @@ module stimulus_gen (
 		rinc = 0;
 		wdata = 0;
 		repeat(20) @(posedge wclk); @(posedge rclk);
-		wrstn = 1;
-		rrstn = 1;
+		wrstn <= 1;
+		rrstn <= 1;
 		@(posedge wclk); @(posedge rclk);
 		
 		// Test basic write and read operations
-		winc = 1;
-		wdata = 8'hAA; @(posedge wclk); 
-		wdata = 8'h55; @(posedge wclk); 
-		wdata = 8'h33; @(posedge wclk);
-		wdata = 8'hCC; @(posedge wclk);
-		winc = 0;
+		winc <= 1;
+		wdata <= 8'hAA; @(posedge wclk); 
+		wdata <= 8'h55; @(posedge wclk); 
+		wdata <= 8'h33; @(posedge wclk);
+		wdata <= 8'hCC; @(posedge wclk);
+		winc <= 0;
 		@(posedge wclk);
 		
 		// Test read operations
-		rinc = 1;
+		rinc <= 1;
 		repeat(4) @(posedge rclk);
-		rinc = 0;
+		rinc <= 0;
 		@(posedge rclk);
 		
 		// Test simultaneous write and read
-		winc = 1;
-		rinc = 1;
-		wdata = 8'h11; @(posedge wclk); @(posedge rclk);
-		wdata = 8'h22; @(posedge wclk); @(posedge rclk);
-		wdata = 8'h44; @(posedge wclk); @(posedge rclk);
-		wdata = 8'h88; @(posedge wclk); @(posedge rclk);
-		winc = 0;
-		rinc = 0;
+		winc <= 1;
+		rinc <= 1;
+		wdata <= 8'h11; @(posedge wclk); @(posedge rclk);
+		wdata <= 8'h22; @(posedge wclk); @(posedge rclk);
+		wdata <= 8'h44; @(posedge wclk); @(posedge rclk);
+		wdata <= 8'h88; @(posedge wclk); @(posedge rclk);
+		winc <= 0;
+		rinc <= 0;
 		@(posedge wclk);
 		
 		// Test FIFO full condition
-		winc = 1;
-		wdata = 8'hF0; @(posedge wclk);
-		wdata = 8'hF1; @(posedge wclk);
-		wdata = 8'hF2; @(posedge wclk);
-		wdata = 8'hF3; @(posedge wclk);
-		wdata = 8'hF4; @(posedge wclk);
-		wdata = 8'hF5; @(posedge wclk);
-		wdata = 8'hF6; @(posedge wclk);
-		wdata = 8'hF7; @(posedge wclk);
-		wdata = 8'hF8; @(posedge wclk);
-		wdata = 8'hF9; @(posedge wclk);
-		wdata = 8'hFA; @(posedge wclk);
-		wdata = 8'hFB; @(posedge wclk);
-		wdata = 8'hFC; @(posedge wclk);
-		wdata = 8'hFD; @(posedge wclk);
-		wdata = 8'hFE; @(posedge wclk);
-		wdata = 8'hFF; @(posedge wclk);
-		winc = 0;
+		winc <= 1;
+		wdata <= 8'hF0; @(posedge wclk);
+		wdata <= 8'hF1; @(posedge wclk);
+		wdata <= 8'hF2; @(posedge wclk);
+		wdata <= 8'hF3; @(posedge wclk);
+		wdata <= 8'hF4; @(posedge wclk);
+		wdata <= 8'hF5; @(posedge wclk);
+		wdata <= 8'hF6; @(posedge wclk);
+		wdata <= 8'hF7; @(posedge wclk);
+		wdata <= 8'hF8; @(posedge wclk);
+		wdata <= 8'hF9; @(posedge wclk);
+		wdata <= 8'hFA; @(posedge wclk);
+		wdata <= 8'hFB; @(posedge wclk);
+		wdata <= 8'hFC; @(posedge wclk);
+		wdata <= 8'hFD; @(posedge wclk);
+		wdata <= 8'hFE; @(posedge wclk);
+		wdata <= 8'hFF; @(posedge wclk);
+		winc <= 0;
 		@(posedge wclk);
 		
 		// Test FIFO empty condition
-		rinc = 1;
+		rinc <= 1;
 		repeat(20) @(posedge rclk); // Should trigger rempty
-		rinc = 0;
+		rinc <= 0;
 		@(posedge rclk);
 		
 		// Random testing
@@ -94,7 +94,36 @@ module stimulus_gen (
 			rinc <= $random;
 			wdata <= $random % 256;
 		end
-		
+
+		// Additional checks: both resets asserted mid-run with data in the FIFO. The given code resets
+		// the pointers, gray pointers and synchronisers asynchronously (wrstn / rrstn), so the FIFO must
+		// read as empty and not full right away and restart from address 0 after the release. Resets
+		// change 3 ps after a wclk edge (never on a wclk/rclk edge or a sample point).
+		for (int r = 0; r < 2; r++) begin
+			@(posedge wclk) begin winc <= 1; rinc <= 0; end
+			repeat (5 + 4 * r) @(posedge wclk) wdata <= $random % 256;
+			@(posedge wclk) winc <= 0;
+			@(posedge wclk);
+			#3 begin wrstn = 0; rrstn = 0; end
+			repeat (3) @(posedge rclk);
+			@(posedge wclk);
+			#3 begin wrstn = 1; rrstn = 1; end
+			repeat (2) @(posedge rclk);
+			// refill, drain, then random traffic
+			@(posedge wclk) winc <= 1;
+			repeat (6) @(posedge wclk) wdata <= $random % 256;
+			@(posedge wclk) winc <= 0;
+			repeat (4) @(posedge rclk);
+			@(posedge rclk) rinc <= 1;
+			repeat (10) @(posedge rclk);
+			@(posedge rclk) rinc <= 0;
+			repeat (150) @(posedge wclk, posedge rclk) begin
+				winc <= $random;
+				rinc <= $random;
+				wdata <= $random % 256;
+			end
+		end
+
 		#1 $finish;
 	end
 	// === End your code here ===

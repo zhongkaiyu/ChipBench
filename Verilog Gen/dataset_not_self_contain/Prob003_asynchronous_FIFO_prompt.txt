@@ -30,6 +30,10 @@ FIFO operation:
 - wfull indicates the FIFO is full and cannot accept more writes
 - rempty indicates the FIFO is empty and has no data to read
 - The FIFO should handle clock domain crossing properly
+- wrstn and rrstn are asynchronous active-low resets, each for its own clock domain
+- wfull goes high one wclk edge after the write that fills the FIFO, and rempty one rclk edge after
+  the read that empties it; a write (read) at that edge is still accepted
+- A pointer change reaches the other domain one edge of its own clock plus two edges of the other clock later
 
 
 Dual-port RAM module (provided):
@@ -60,4 +64,4 @@ end
 
 endmodule  
 ```
-
+The final evaluation compiles this module together with TopModule.sv, so do not define a module named dual_port_RAM in TopModule.sv.

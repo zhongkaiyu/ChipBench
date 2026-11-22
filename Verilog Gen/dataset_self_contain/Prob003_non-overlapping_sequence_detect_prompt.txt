@@ -21,10 +21,11 @@ The output signals `match` and `not_match` should be implemented as follows:
 - Declare both outputs as `reg` type: `output reg match, output reg not_match`
 - Use combinational logic with Wildcard Sensitivity List block to control the outputs
 - The outputs are mutually exclusive - only one can be high at a time
+- While `rst_n` is low, both outputs are 0
 
 ### Timing and Behavior:
 - When `rst_n` is low, the module should reset to its initial state and begin sequence detection from the start.
 - On every positive clock edge (`clk`), the module should evaluate the input signal `data` and transition states accordingly.
+- The first positive clock edge after power-up only initializes the module and consumes no `data` bit.
 
-Clarification: match and not_match are combinational (Moore) functions of the current state only, not of the current input bit. Each completed 6-bit group produces exactly one pulse aligned to the group's 6th bit: match=1 for a matching group or not_match=1 for a non-matching group, regardless of which bit first diverged.
-
+Clarification: match and not_match are combinational (Moore) functions of the current state only, not of the current input bit, except that both are 0 while `rst_n` is low. Each completed 6-bit group produces exactly one pulse aligned to the group's 6th bit: match=1 for a matching group or not_match=1 for a non-matching group, regardless of which bit first diverged.

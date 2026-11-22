@@ -8,6 +8,11 @@ module stimulus_gen (
 	output reg data
 );
 
+	// additional check: drive one 6-bit group, MSB first, one bit per falling edge
+	task automatic send_group(input logic [5:0] g);
+		for (int i = 5; i >= 0; i--) @(negedge clk) data <= g[i];
+	endtask
+
 	initial begin
 		// Initialize signals
 		rst_n = 1'b0;
@@ -34,6 +39,40 @@ module stimulus_gen (
 
 		// End simulation after sufficient cycles
 		repeat(100) @(posedge clk);
+
+		// Additional checks, after all original stimulus. Inputs change on the falling edge only.
+		// (1) mid-run asynchronous reset: "When rst_n is low, the module should reset to its initial state
+		//     and begin sequence detection from the start" and "While rst_n is low, both outputs are 0".
+		//     The first rising edge with rst_n high after a mid-run reset evaluates data (only the first edge
+		//     after power-up consumes no bit), so groups restart at that bit.
+		// (2) after the restart, whole groups: matching groups back to back, groups that diverge at each bit
+		//     position, and a long run of random groups (half of them the target sequence).
+		for (int r = 0; r < 4; r++) begin
+			repeat (3 + r) @(negedge clk) data <= $random;  // stop part-way into a group
+			if (r == 3) begin
+				// short pulse between two rising edges: asynchronous, so it still resets
+				@(negedge clk);
+				#1 rst_n <= 1'b0;
+				#2 rst_n <= 1'b1;
+			end else begin
+				@(negedge clk) rst_n <= 1'b0;             // assert between rising edges
+				repeat (1 + r % 2) @(negedge clk);
+				rst_n <= 1'b1;                             // release between rising edges
+			end
+			send_group(6'b011100);
+			send_group(6'b011100);
+			for (int b = 0; b < 6; b++) send_group(6'b011100 ^ (6'b100000 >> b));
+			send_group(6'b011100);
+			repeat (60) begin
+				if ($urandom_range(0, 1)) send_group(6'b011100);
+				else send_group($urandom);
+			end
+		end
+		// (3) reset asserted while match is high, held low to the end: outputs must drop to 0 at once.
+		send_group(6'b011100);
+		@(negedge clk);
+		#1 rst_n <= 1'b0;
+		repeat (5) @(posedge clk);
 		#1 $finish;
 	end
 	

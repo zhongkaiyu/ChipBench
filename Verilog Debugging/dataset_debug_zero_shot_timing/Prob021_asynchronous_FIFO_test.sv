@@ -95,6 +95,35 @@ module stimulus_gen (
 			wdata <= $random % 256;
 		end
 
+		// Additional checks: both resets asserted mid-run with data in the FIFO. The given code resets
+		// the pointers, gray pointers and synchronisers asynchronously (wrstn / rrstn), so the FIFO must
+		// read as empty and not full right away and restart from address 0 after the release. Resets
+		// change 3 ps after a wclk edge (never on a wclk/rclk edge or a sample point).
+		for (int r = 0; r < 2; r++) begin
+			@(posedge wclk) begin winc <= 1; rinc <= 0; end
+			repeat (5 + 4 * r) @(posedge wclk) wdata <= $random % 256;
+			@(posedge wclk) winc <= 0;
+			@(posedge wclk);
+			#3 begin wrstn = 0; rrstn = 0; end
+			repeat (3) @(posedge rclk);
+			@(posedge wclk);
+			#3 begin wrstn = 1; rrstn = 1; end
+			repeat (2) @(posedge rclk);
+			// refill, drain, then random traffic
+			@(posedge wclk) winc <= 1;
+			repeat (6) @(posedge wclk) wdata <= $random % 256;
+			@(posedge wclk) winc <= 0;
+			repeat (4) @(posedge rclk);
+			@(posedge rclk) rinc <= 1;
+			repeat (10) @(posedge rclk);
+			@(posedge rclk) rinc <= 0;
+			repeat (150) @(posedge wclk, posedge rclk) begin
+				winc <= $random;
+				rinc <= $random;
+				wdata <= $random % 256;
+			end
+		end
+
 		// === Additional checks: both domain resets asserted mid-operation ===
 		// Spec: "Reset: wrstn (write domain reset) and rrstn (read domain reset)" with the quoted asynchronous
 		// resets of both pointer domains. Both resets are asserted together; the FIFO never gets near full here.

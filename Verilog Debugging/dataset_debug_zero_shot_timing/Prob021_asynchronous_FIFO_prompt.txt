@@ -63,7 +63,7 @@ endmodule
 
 
 `dual_port_RAM` is provided; do not define it in `TopModule.sv`. The
-self-test reports it as an unknown module; that is expected.
+final evaluation compiles it together with `TopModule.sv`.
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
 ```

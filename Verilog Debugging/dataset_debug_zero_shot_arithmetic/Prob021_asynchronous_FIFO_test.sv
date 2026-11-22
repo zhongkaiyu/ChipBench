@@ -124,6 +124,46 @@ module stimulus_gen (
 			end
 		end
 
+		// === Additional checks: both domain resets asserted mid-operation ===
+		// Spec: "Reset: wrstn (write domain reset) and rrstn (read domain reset)" with the quoted asynchronous
+		// resets of both pointer domains. Both resets are asserted together; the FIFO never gets near full here.
+		// All new stimulus changes 2 time units after a clock edge (edges fall on multiples of 5): no edge race.
+		@(posedge wclk); #2;
+		winc <= 0; rinc <= 0;
+		wrstn <= 0; rrstn <= 0;               // reset from whatever state the random section left
+		repeat(3) @(posedge rclk);
+		#2 wrstn <= 1; rrstn <= 1;
+		repeat(2) @(posedge rclk);
+		#2 winc <= 1;
+		for (int k = 0; k < 6; k++) begin     // FIFO holds 6 words
+			wdata <= 8'h90 + k;
+			@(posedge wclk); #2;
+		end
+		winc <= 0;
+		repeat(4) @(posedge rclk);
+		#2 rinc <= 1;                         // read 2 of them
+		repeat(2) @(posedge rclk);
+		#2 rinc <= 0;
+		repeat(2) @(posedge rclk);
+		#2 wrstn <= 0; rrstn <= 0;            // reset while 4 words are still stored
+		repeat(3) @(posedge rclk);
+		#2 wrstn <= 1; rrstn <= 1;
+		repeat(4) @(posedge rclk);
+		#2 rinc <= 1;                         // FIFO must be empty: these reads are ignored
+		repeat(3) @(posedge rclk);
+		#2 rinc <= 0;
+		@(posedge wclk); #2 winc <= 1;
+		for (int k = 0; k < 5; k++) begin
+			wdata <= 8'hA0 + k;
+			@(posedge wclk); #2;
+		end
+		winc <= 0;
+		repeat(4) @(posedge rclk);
+		#2 rinc <= 1;
+		repeat(10) @(posedge rclk);           // read the 5 new words, then reads while empty
+		#2 rinc <= 0;
+		repeat(4) @(posedge rclk);
+		
 		#1 $finish;
 	end
 	// === End your code here ===

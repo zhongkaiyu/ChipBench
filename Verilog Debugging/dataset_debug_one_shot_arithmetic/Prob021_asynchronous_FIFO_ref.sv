@@ -102,7 +102,9 @@ assign ren = rinc & !rempty;
 assign waddr = waddr_bin[ADDR_WIDTH-1:0];
 assign raddr = raddr_bin[ADDR_WIDTH-1:0];
 
-dual_port_RAM #(.DEPTH(DEPTH),
+// Additional check: RefModule uses its own copy of the spec's provided dual_port_RAM, so the design's RAM is
+// checked against the spec instead of being shared with the reference.
+RefModule_dual_port_RAM #(.DEPTH(DEPTH),
 				.WIDTH(WIDTH)
 )dual_port_RAM(
 	.wclk (wclk),  
@@ -114,5 +116,32 @@ dual_port_RAM #(.DEPTH(DEPTH),
 	.raddr(raddr[ADDR_WIDTH-1:0]),   //Take log2 of depth to get address bit width.
 	.rdata(rdata)  		//Data output
 );
+
+endmodule
+
+// Verbatim copy of the dual_port_RAM given on the spec (renamed so it cannot collide with the design's copy).
+module RefModule_dual_port_RAM #(parameter DEPTH = 16,
+					   parameter WIDTH = 8)(
+	 input wclk
+	,input wenc
+	,input [$clog2(DEPTH)-1:0] waddr  //Take log2 of depth to get address bit width.
+	,input [WIDTH-1:0] wdata      	//Data write
+	,input rclk
+	,input renc
+	,input [$clog2(DEPTH)-1:0] raddr  //Take log2 of depth to get address bit width.
+	,output reg [WIDTH-1:0] rdata 		//Data output
+);
+
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+
+always @(posedge wclk) begin
+	if(wenc)
+		RAM_MEM[waddr] <= wdata;
+end 
+
+always @(posedge rclk) begin
+	if(renc)
+		rdata <= RAM_MEM[raddr];
+end 
 
 endmodule

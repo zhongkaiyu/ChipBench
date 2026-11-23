@@ -44,10 +44,10 @@ always @(posedge clk or negedge rst_n)begin
       bin_out <= 4'b0;
    end
    else begin
-      bin_out[3] = gray_wire[3];
-      bin_out[2] = gray_wire[2]^bin_out[3];
-      bin_out[1] = gray_wire[1]^bin_out[2];
-      bin_out[0] = gray_wire[0]^bin_out[1];
+      bin_out[3] <= gray_wire[3];
+      bin_out[2] <= gray_wire[3]^gray_wire[2];
+      bin_out[1] <= gray_wire[3]^gray_wire[2]^gray_wire[1];
+      bin_out[0] <= gray_wire[3]^gray_wire[2]^gray_wire[1]^gray_wire[0];
    end 
 end
 //Binary increment

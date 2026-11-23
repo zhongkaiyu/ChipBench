@@ -14,34 +14,57 @@ module stimulus_gen (
 	initial begin
 		rst_n = 0;
 		pass_request = 0;
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test normal traffic light cycle
-		pass_request = 0;
+		pass_request <= 0;
 		repeat(100) @(posedge clk); // Let it cycle through red->green->yellow->red
 		
 		// Test pedestrian request during green phase
-		pass_request = 1;
+		pass_request <= 1;
 		repeat(20) @(posedge clk); // Request during green
-		pass_request = 0;
+		pass_request <= 0;
 		@(posedge clk);
 		
 		// Test pedestrian request during red phase (should not affect)
-		pass_request = 1;
+		pass_request <= 1;
 		repeat(15) @(posedge clk); // Request during red
-		pass_request = 0;
+		pass_request <= 0;
 		@(posedge clk);
 		
 		// Test pedestrian request during yellow phase (should not affect)
-		pass_request = 1;
+		pass_request <= 1;
 		repeat(10) @(posedge clk); // Request during yellow
-		pass_request = 0;
+		pass_request <= 0;
 		@(posedge clk);
 		
 		// Random testing
 		repeat(200) @(posedge clk, negedge clk) begin
+			pass_request <= $random;
+		end
+
+		// === Additional checks: asynchronous active-low reset in mid-operation ===
+		// Spec: "The reset input is active low asynchronous, and should reset the traffic light to red state";
+		// "Reset behavior: Active low reset to red state with clock = 10; all lights are 0 during reset and for
+		// the first two clock edges after release". Earlier stimulus only resets at start-up. rst_n changes at
+		// posedge+2 (no edge race).
+		@(posedge clk); #2 pass_request <= 0;
+		rst_n <= 0;
+		repeat(3) @(posedge clk);
+		#2 rst_n <= 1;
+		repeat(40) @(posedge clk);            // reset again during the following green phase
+		#2 rst_n <= 0;
+		@(posedge clk);
+		#2 rst_n <= 1;
+		repeat(17) @(posedge clk);            // and once more during red
+		#2 rst_n <= 0;
+		repeat(2) @(posedge clk);
+		#2 rst_n <= 1;
+		repeat(240) @(posedge clk, negedge clk) begin
 			pass_request <= $random;
 		end
 		

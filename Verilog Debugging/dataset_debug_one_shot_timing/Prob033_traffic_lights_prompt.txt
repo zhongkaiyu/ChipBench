@@ -13,7 +13,7 @@ specified.
 The module should implement a traffic light controller with pedestrian
 request functionality. Assume all sequential logic is triggered on the
 positive edge of the clock. The reset input is active low asynchronous,
-and should reset the traffic light to red state.
+and red is the first light lit after reset.
 
 The traffic light controller should work as follows:
 - Normal operation: Traffic light cycles through red (10 clock cycles),
@@ -34,7 +34,8 @@ Traffic light operation:
   request is active and remaining time > 10
 - Yellow light: 5 clock cycles, clock counts down from 5 to 1
 - Pedestrian request: Shortens green time to 10 cycles if remaining time > 10
-- Reset behavior: Active low reset to red state with clock = 10
+- Reset behavior: Active low reset with clock = 10; all lights stay off during
+  reset and for two clock edges after release, then red turns on with clock = 10
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
 ```

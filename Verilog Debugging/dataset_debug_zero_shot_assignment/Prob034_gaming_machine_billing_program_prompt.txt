@@ -36,6 +36,8 @@ Gaming machine operation:
 - Yellow warning: Active when 0 < remain < 10
 - Red warning: Active when remain < 1 for normal mode, remaon < 2 for boost mode
   (insufficient funds)
+- Warning timing: yellow and red follow their conditions one clock cycle
+  later; red uses the boost value of that earlier cycle
 - Reset behavior: Active low reset to initial state
 
 

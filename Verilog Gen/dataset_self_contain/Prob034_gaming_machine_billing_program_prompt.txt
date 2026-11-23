@@ -24,7 +24,8 @@ The gaming machine billing system should work as follows:
 - Default mode: Normal mode (boost = 0)
 - Boost mode: Activated when boost = 1, charges 2 yuan per clock cycle
 - Balance deduction: Each clock cycle deducts 1 yuan (normal) or 2 yuan
-  (boost) from remain
+  (boost) from remain; if remain is less than that amount, remain holds
+  its value
 - Warning indicators: Yellow light when remain > 0 and < 10, red light
   when remain < 1 in normal mode, when remain < 2 in boost mode.
 - Continuous charging: Users can recharge during gameplay via set signal

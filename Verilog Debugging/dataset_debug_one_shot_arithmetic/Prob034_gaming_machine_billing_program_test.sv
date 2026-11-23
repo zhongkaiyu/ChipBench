@@ -18,40 +18,42 @@ module stimulus_gen (
 		money = 0;
 		set = 0;
 		boost = 0;
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test normal mode charging
-		set = 1;
-		money = 10'd50; @(posedge clk); // Charge 50 yuan
-		set = 0;
+		set <= 1;
+		money <= 10'd50; @(posedge clk); // Charge 50 yuan
+		set <= 0;
 		@(posedge clk);
 		
 		// Test normal mode consumption (1 yuan per cycle)
-		boost = 0;
+		boost <= 0;
 		repeat(20) @(posedge clk); // Consume 20 yuan
 		
 		// Test charging during gameplay
-		boost = 0;
-		set = 1;
-		money = 10'd20; @(posedge clk); // Charge while playing
-		set = 0;
+		boost <= 0;
+		set <= 1;
+		money <= 10'd20; @(posedge clk); // Charge while playing
+		set <= 0;
 		@(posedge clk);
 
-        boost = 1;
+        boost <= 1;
         repeat(25) @(posedge clk); // Consume 50 yuan
 				
 		// Test insufficient funds in normal mode
-		boost = 0;
+		boost <= 0;
 		repeat(10) @(posedge clk); // Try to consume more than available
 		
 		// Test insufficient funds in boost mode
-		set = 1;
-		money = 10'd3; @(posedge clk); // Charge small amount
-		set = 0;
+		set <= 1;
+		money <= 10'd3; @(posedge clk); // Charge small amount
+		set <= 0;
 		@(posedge clk);
-		boost = 1;
+		boost <= 1;
 		repeat(5) @(posedge clk); // Try to consume in boost mode
 		
 		// Random testing

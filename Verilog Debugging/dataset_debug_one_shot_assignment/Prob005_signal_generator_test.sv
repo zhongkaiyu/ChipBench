@@ -13,24 +13,27 @@ module stimulus_gen (
 
 	
 	initial begin
-		rst_n = 0;
-		wave_choice = 0;
-		repeat(20) @(posedge clk);
 		rst_n = 1;
-		@(posedge clk);
-		// Test square wave (wave_choice = 0)
 		wave_choice = 0;
+		#1 rst_n = 0;   // assert reset after time 0 so every design sees the falling edge
+		// (inputs below are written nonblocking: a blocking write right after @(posedge clk) happens on
+		// the clock edge and races with the design's always blocks)
+		repeat(20) @(posedge clk);
+		rst_n <= 1;
+		@(posedge clk);
+		// Test square wave (wave_choice <= 0)
+		wave_choice <= 0;
 		repeat(800) @(posedge clk);
 		
-		// Test sawtooth wave (wave_choice = 1)
-		wave_choice = 1;
+		// Test sawtooth wave (wave_choice <= 1)
+		wave_choice <= 1;
 		repeat(800) @(posedge clk);
 		
-		// Test triangular wave (wave_choice = 2)
-		wave_choice = 2;
+		// Test triangular wave (wave_choice <= 2)
+		wave_choice <= 2;
 		repeat(800) @(posedge clk);
 
-        wave_choice = 0;
+        wave_choice <= 0;
         repeat(800) @(posedge clk);
 		
 		

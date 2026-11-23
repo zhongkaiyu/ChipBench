@@ -19,11 +19,17 @@ The waveform generation should work as follows:
 - The wave output should be a 5-bit signal that cycles through different
   values to create the desired waveform patterns. wave takes integer values
   0 to 20 (decimal); it never uses the full 5-bit 0-31 range.
+- rst_n is an active-low asynchronous reset that sets wave to 0.
+- Changing wave_choice does not restart the waveform: the newly selected
+  waveform continues from the current value of wave.
 - Each waveform should complete one full cycle and then repeat
 - The square wave should alternate between high and low values: square = 20
-  for 10 clocks, then 0 for 10 clocks (period 20 cycles, 50% duty).
+  for 10 clocks, then 0 for 10 clocks (period 20 cycles, 50% duty). When
+  selected, including at reset release, wave first keeps its current value
+  for 10 clocks, then is 20 for 10 clocks, 0 for 10 clocks, and so on.
 - The sawtooth wave should increment from 0 to maximum value (20) and then
-  reset: sawtooth counts 0->1->...->20, then wraps to 0.
+  reset: sawtooth counts 0->1->...->20, then wraps to 0. Each clock adds 1
+  to the current value of wave, so the first clock after reset shows 1.
 - The triangular wave should increment from 0 to maximum (20), then decrement
-  back to 0: triangle ramps 0->20 then 20->0, one step per clock.
-
+  back to 0: triangle ramps 0->20 then 20->0, one step per clock. When
+  selected, it first counts down from the current value of wave to 0.

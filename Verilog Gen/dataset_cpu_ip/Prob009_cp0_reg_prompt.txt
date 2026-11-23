@@ -27,9 +27,9 @@ I would like you to implement a module named `TopModule` with the following inte
 ### Functionality:
 1. **Reset Behavior**: On reset (`rst`), all output registers should be initialized to their default values:
    - `count_o` and `compare_o`: 0.
-   - `status_o`: Set `CU[0]` to `1` (indicating CP0 support).
-   - `cause_o`, `epc_o`, `config_o`: 0, with `config_o` having the `BE` bit set to `1` (Big-Endian).
-   - `prid_o`: A value indicating version and processor ID (e.g., `0x00480002`).
+   - `status_o`: Set `CU[0]` to `1` (indicating CP0 support), i.e. `0x10000000`.
+   - `cause_o`, `epc_o`, `config_o`: 0, with `config_o` having the `BE` bit set to `1` (Big-Endian), i.e. `0x00008000`.
+   - `prid_o`: `0x004C0102` (version and processor ID).
    - `timer_int_o`: De-asserted (0).
 
 2. **Counter and Timer Interrupt**:
@@ -37,25 +37,25 @@ I would like you to implement a module named `TopModule` with the following inte
    - If `compare_o` is non-zero and `count_o` equals `compare_o`, the `timer_int_o` signal is asserted (set to `1`).
 
 3. **Register Writes**:
-   - When `we_i` is asserted, the module writes `data_i` into one of the following registers based on the `waddr_i` value:
-     - `CP0_REG_COUNT`: Writes to `count_o`.
+   - When `we_i` is asserted, the module writes `data_i` into one of the following registers based on the `waddr_i` value (COUNT 9, COMPARE 11, STATUS 12, CAUSE 13, EPC 14):
+     - `CP0_REG_COUNT`: Writes to `count_o` (instead of that cycle's increment).
      - `CP0_REG_COMPARE`: Writes to `compare_o` and de-asserts `timer_int_o`.
      - `CP0_REG_STATUS`: Writes to `status_o`.
      - `CP0_REG_CAUSE`: Modifies specific writable bits of `cause_o`.
      - `CP0_REG_EPC`: Writes to `epc_o`.
 
 4. **Exception Handling**:
-   - Based on the value of `excepttype_i`, the module updates `epc_o`, `cause_o`, and `status_o` to handle exceptions.
-   - If the instruction causing the exception is in a delay slot (`is_in_delayslot_i`), the module sets the `BD` bit in `cause_o` and adjusts `epc_o` accordingly.
+   - Based on the value of `excepttype_i`, the module updates `epc_o`, `cause_o`, and `status_o` to handle exceptions: `0x1` (interrupt), `0x8`, `0xa`, `0xc` and `0xd` set `EXL` (`status_o[1]`) and write `ExcCode` (`cause_o[6:2]`) with 0, 8, 10, 12 or 13; other values except ERET change nothing.
+   - If the instruction causing the exception is in a delay slot (`is_in_delayslot_i`), the module sets the `BD` bit (`cause_o[31]`) and loads `epc_o` with `current_inst_addr_i - 4`; otherwise it clears `BD` and loads `current_inst_addr_i`. Except for `0x1`, `epc_o` and `BD` change only while `EXL` is 0.
 
 5. **Register Reads**:
-   - The `data_o` output provides the value of the register specified by `raddr_i`.
+   - The `data_o` output provides the value of the register specified by `raddr_i` in the same cycle (numbers as above, plus PrId 15 and Config 16); it is 0 while `rst` is high.
 
 6. **Interrupt Handling**:
    - The module updates the `IP` field in `cause_o` with the value of `int_i`.
 
 7. **ERET Handling**:
-   - If the `excepttype_i` input indicates an ERET instruction, the module clears the `EXL` bit in `status_o`.
+   - If the `excepttype_i` input indicates an ERET instruction (`0xe`), the module clears the `EXL` bit in `status_o`.
 
 ### Additional Notes:
 - Use descriptive signal names and comments to clarify the functionality.

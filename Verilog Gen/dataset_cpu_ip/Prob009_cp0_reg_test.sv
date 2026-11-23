@@ -485,8 +485,9 @@ module tb();
 		.timer_int_o(timer_int_o_dut)
 	);
 
+	// Standard ChipBench compare: an X in the reference (its registers before the first reset edge) matches anything.
 	assign tb_match = ( { data_o_ref, count_o_ref, compare_o_ref, status_o_ref, cause_o_ref, epc_o_ref, config_o_ref, prid_o_ref, timer_int_o_ref } === 
-	                   ( { data_o_dut, count_o_dut, compare_o_dut, status_o_dut, cause_o_dut, epc_o_dut, config_o_dut, prid_o_dut, timer_int_o_dut } ));
+	                   ( { data_o_ref, count_o_ref, compare_o_ref, status_o_ref, cause_o_ref, epc_o_ref, config_o_ref, prid_o_ref, timer_int_o_ref } ^ { data_o_dut, count_o_dut, compare_o_dut, status_o_dut, cause_o_dut, epc_o_dut, config_o_dut, prid_o_dut, timer_int_o_dut } ^ { data_o_ref, count_o_ref, compare_o_ref, status_o_ref, cause_o_ref, epc_o_ref, config_o_ref, prid_o_ref, timer_int_o_ref } ));
 
 	always @(posedge clk, negedge clk) begin
 		stats1.clocks++;
@@ -494,15 +495,15 @@ module tb();
 			if (stats1.errors == 0) stats1.errortime = $time;
 			stats1.errors++;
 		end
-		if (data_o_ref !== data_o_dut) begin
+		if (data_o_ref !== (data_o_ref ^ data_o_dut ^ data_o_ref)) begin
 			if (stats1.errors_data_o == 0) stats1.errortime_data_o = $time;
 			stats1.errors_data_o++;
 		end
-		if (count_o_ref !== count_o_dut) begin
+		if (count_o_ref !== (count_o_ref ^ count_o_dut ^ count_o_ref)) begin
 			if (stats1.errors_count_o == 0) stats1.errortime_count_o = $time;
 			stats1.errors_count_o++;
 		end
-		if (timer_int_o_ref !== timer_int_o_dut) begin
+		if (timer_int_o_ref !== (timer_int_o_ref ^ timer_int_o_dut ^ timer_int_o_ref)) begin
 			if (stats1.errors_timer_int_o == 0) stats1.errortime_timer_int_o = $time;
 			stats1.errors_timer_int_o++;
 		end
@@ -526,6 +527,7 @@ module tb();
 
 		$display("Hint: Total mismatched samples is %1d out of %1d samples.", stats1.errors, stats1.clocks);
 		$display("Simulation finished at %0d ps", $time);
+		$display("Mismatches: %1d in %1d samples", stats1.errors, stats1.clocks);
 	end
 
 	initial begin

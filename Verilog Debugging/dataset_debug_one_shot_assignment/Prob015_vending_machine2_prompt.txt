@@ -64,21 +64,21 @@ module TopModule(
         case(state)
             S0     : nstate = d1? S0_5:
                               d2? S1:
-                              nstate;
+                              state;
             S0_5   : nstate = d1? S1:
                               d2? S1_5:
-                              nstate;
+                              state;
             S1     : nstate = d1? S1_5:
                               d2? S2:
-                              nstate;
+                              state;
             S1_5   : nstate = ~sel? S0:
                               d1? S2:
                               d2? S2_5:
-                              nstate;
+                              state;
             S2     : nstate = ~sel? S0:
                               d1? S2_5:
                               d2? S3:
-                              nstate;
+                              state;
             default: nstate = S0;
         endcase
     end

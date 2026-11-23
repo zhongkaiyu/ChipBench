@@ -15,22 +15,22 @@ module stimulus_gen (
 		rst_n = 0;
 		mode = 0;
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test up counting (mode = 1)
-		mode = 1;
+		mode <= 1;
 		repeat(15) @(posedge clk); // Count up: 0,1,2,3,4,5,6,7,8,9,0,1,2,3,4
 		
 		// Test down counting (mode = 0)
-		mode = 0;
+		mode <= 0;
 		repeat(15) @(posedge clk); // Count down: 5,4,3,2,1,0,9,8,7,6,5,4,3,2,1
 		
 		// Test mode switching
-		mode = 1; @(posedge clk); // Count up
-		mode = 0; @(posedge clk); // Count down
-		mode = 1; @(posedge clk); // Count up
-		mode = 0; @(posedge clk); // Count down
+		mode <= 1; @(posedge clk); // Count up
+		mode <= 0; @(posedge clk); // Count down
+		mode <= 1; @(posedge clk); // Count up
+		mode <= 0; @(posedge clk); // Count down
 		
 		// Random testing
 		repeat(200) @(posedge clk, negedge clk) begin

@@ -17,23 +17,23 @@ module stimulus_gen (
 		mul_a = 0;
 		mul_b = 0;
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test basic multiplication cases
-		mul_a = 4'd2; mul_b = 4'd3; @(posedge clk); // 2 * 3 = 6
-		mul_a = 4'd4; mul_b = 4'd5; @(posedge clk); // 4 * 5 = 20
-		mul_a = 4'd7; mul_b = 4'd8; @(posedge clk); // 7 * 8 = 56
-		mul_a = 4'd9; mul_b = 4'd10; @(posedge clk); // 9 * 10 = 90
-		mul_a = 4'd12; mul_b = 4'd13; @(posedge clk); // 12 * 13 = 156
-		mul_a = 4'd15; mul_b = 4'd15; @(posedge clk); // 15 * 15 = 225
+		mul_a <= 4'd2; mul_b <= 4'd3; @(posedge clk); // 2 * 3 = 6
+		mul_a <= 4'd4; mul_b <= 4'd5; @(posedge clk); // 4 * 5 = 20
+		mul_a <= 4'd7; mul_b <= 4'd8; @(posedge clk); // 7 * 8 = 56
+		mul_a <= 4'd9; mul_b <= 4'd10; @(posedge clk); // 9 * 10 = 90
+		mul_a <= 4'd12; mul_b <= 4'd13; @(posedge clk); // 12 * 13 = 156
+		mul_a <= 4'd15; mul_b <= 4'd15; @(posedge clk); // 15 * 15 = 225
 		
 		// Test edge cases
-		mul_a = 4'd0; mul_b = 4'd5; @(posedge clk); // 0 * 5 = 0
-		mul_a = 4'd3; mul_b = 4'd0; @(posedge clk); // 3 * 0 = 0
-		mul_a = 4'd1; mul_b = 4'd1; @(posedge clk); // 1 * 1 = 1
-		mul_a = 4'd15; mul_b = 4'd1; @(posedge clk); // 15 * 1 = 15
-		mul_a = 4'd1; mul_b = 4'd15; @(posedge clk); // 1 * 15 = 15
+		mul_a <= 4'd0; mul_b <= 4'd5; @(posedge clk); // 0 * 5 = 0
+		mul_a <= 4'd3; mul_b <= 4'd0; @(posedge clk); // 3 * 0 = 0
+		mul_a <= 4'd1; mul_b <= 4'd1; @(posedge clk); // 1 * 1 = 1
+		mul_a <= 4'd15; mul_b <= 4'd1; @(posedge clk); // 15 * 1 = 15
+		mul_a <= 4'd1; mul_b <= 4'd15; @(posedge clk); // 1 * 15 = 15
 		
 		#1 $finish;
 	end

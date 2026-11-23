@@ -14,7 +14,8 @@ The circuit should generate the pattern as follows:
 - After outputting the last '1', the sequence repeats from the beginning
 - The sequence 001011 repeats indefinitely
 
-The rst_n signal is an active-low reset signal. When reset is asserted,
+The rst_n signal is an active-low asynchronous reset signal; data is 0
+while rst_n is low. When reset is asserted,
 the sequence should restart from the beginning. Assume all sequential
 logic is triggered on the positive edge of the clock.
 

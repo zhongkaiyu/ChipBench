@@ -32,50 +32,52 @@ module stimulus_gen (
 		branch_flag_i = 1'b0;
 		branch_target_address_i = 32'h0;
 		
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		// Test reset - hold reset for a few cycles
 		@(posedge clk);
 		@(posedge clk);
 		@(posedge clk);
 		
 		// Release reset
-		rst = `RstDisable;
+		rst <= `RstDisable;
 		@(posedge clk);
 		
 		// Test normal PC increment (should increment by 4 each cycle)
-		stall = 6'b0;
-		flush = 1'b0;
-		branch_flag_i = 1'b0;
+		stall <= 6'b0;
+		flush <= 1'b0;
+		branch_flag_i <= 1'b0;
 		repeat(10) @(posedge clk);
 		
 		// Test stall - PC should not increment when stall[0] = 1
-		stall = 6'b000001; // stall[0] = 1
+		stall <= 6'b000001; // stall[0] = 1
 		repeat(5) @(posedge clk);
-		stall = 6'b0;
+		stall <= 6'b0;
 		repeat(5) @(posedge clk);
 		
 		// Test flush - PC should jump to new_pc
-		new_pc = 32'h00001000;
-		flush = 1'b1;
+		new_pc <= 32'h00001000;
+		flush <= 1'b1;
 		@(posedge clk);
-		flush = 1'b0;
+		flush <= 1'b0;
 		repeat(5) @(posedge clk);
 		
 		// Test branch - PC should jump to branch_target_address_i
-        stall = 6'b0;
-		branch_target_address_i = 32'h00002000;
-		branch_flag_i = `Branch;
+        stall <= 6'b0;
+		branch_target_address_i <= 32'h00002000;
+		branch_flag_i <= `Branch;
 		@(posedge clk);
-		branch_flag_i = 1'b0;
+		branch_flag_i <= 1'b0;
 		repeat(5) @(posedge clk);
 		
 		
 		// Test stall with branch - stall should prevent PC update
-		branch_target_address_i = 32'h00005000;
-		branch_flag_i = `Branch;
-		stall = 6'b000001; // stall[0] = 1
+		branch_target_address_i <= 32'h00005000;
+		branch_flag_i <= `Branch;
+		stall <= 6'b000001; // stall[0] = 1
 		@(posedge clk);
-		stall = 6'b0;
-		branch_flag_i = 1'b0;
+		stall <= 6'b0;
+		branch_flag_i <= 1'b0;
 		repeat(5) @(posedge clk);
 		
 		// Random testing

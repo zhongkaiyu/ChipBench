@@ -17,40 +17,40 @@ module stimulus_gen (
 		valid_in = 0;
 		data_in = 0;
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test first group: 6 x 24-bit inputs to form 128-bit output
 		// Inputs: 0x111111, 0x222222, 0x333333, 0x444444, 0x555555, 0x666666
-		valid_in = 1;
-		data_in = 24'h111111; @(posedge clk);
-		data_in = 24'h222222; @(posedge clk);
-		data_in = 24'h333333; @(posedge clk);
-		data_in = 24'h444444; @(posedge clk);
-		data_in = 24'h555555; @(posedge clk);
-		data_in = 24'h666666; @(posedge clk);
+		valid_in <= 1;
+		data_in <= 24'h111111; @(posedge clk);
+		data_in <= 24'h222222; @(posedge clk);
+		data_in <= 24'h333333; @(posedge clk);
+		data_in <= 24'h444444; @(posedge clk);
+		data_in <= 24'h555555; @(posedge clk);
+		data_in <= 24'h666666; @(posedge clk);
 		
 		// Test second group: 6 x 24-bit inputs
-		data_in = 24'h777777; @(posedge clk);
-		data_in = 24'h888888; @(posedge clk);
-		data_in = 24'h999999; @(posedge clk);
-		data_in = 24'haaaaaa; @(posedge clk);
-		data_in = 24'hbbbbbb; @(posedge clk);
-		data_in = 24'hcccccc; @(posedge clk);
+		data_in <= 24'h777777; @(posedge clk);
+		data_in <= 24'h888888; @(posedge clk);
+		data_in <= 24'h999999; @(posedge clk);
+		data_in <= 24'haaaaaa; @(posedge clk);
+		data_in <= 24'hbbbbbb; @(posedge clk);
+		data_in <= 24'hcccccc; @(posedge clk);
 		
 		// Test with valid_in low (should ignore data)
-		valid_in = 0;
-		data_in = 24'hdddddd; @(posedge clk);
-		data_in = 24'heeeeee; @(posedge clk);
+		valid_in <= 0;
+		data_in <= 24'hdddddd; @(posedge clk);
+		data_in <= 24'heeeeee; @(posedge clk);
 		
 		// Test third group: 6 x 24-bit inputs
-		valid_in = 1;
-		data_in = 24'hffffff; @(posedge clk);
-		data_in = 24'h000000; @(posedge clk);
-		data_in = 24'h123456; @(posedge clk);
-		data_in = 24'h789abc; @(posedge clk);
-		data_in = 24'hdef012; @(posedge clk);
-		data_in = 24'h345678; @(posedge clk);
+		valid_in <= 1;
+		data_in <= 24'hffffff; @(posedge clk);
+		data_in <= 24'h000000; @(posedge clk);
+		data_in <= 24'h123456; @(posedge clk);
+		data_in <= 24'h789abc; @(posedge clk);
+		data_in <= 24'hdef012; @(posedge clk);
+		data_in <= 24'h345678; @(posedge clk);
 		
 		// Random testing
 		repeat(200) @(posedge clk, negedge clk) begin

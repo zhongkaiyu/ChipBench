@@ -26,6 +26,9 @@ Data conversion process:
 - The last received 24-bit data should be placed in the low bits of data_out
 - After accumulating enough data to form a complete 128-bit word, the module
   outputs data_out with valid_out asserted
+- valid_out and data_out are registered: the word appears the cycle after the edge that samples
+  the 6th/11th/16th input; valid_out is high for that one cycle and data_out holds the last word
+- rst_n is an asynchronous active-low reset that clears valid_out, data_out, the input count and
+  the accumulated bits
 
 Clarification: Maintain a running shift register and shift in each full 24-bit input on every valid input. Assert valid_out on the 6th, 11th, and 16th valid inputs (input-counter values 5, 10, 15, counting modulo 16). At those points form the 128-bit output by concatenating the accumulated bits with, respectively, data_in[23:16], data_in[23:8], and data_in[23:0], so that the 128-bit boundaries cut through the 24-bit words.
-

@@ -1,4 +1,3 @@
-
 I would like you to implement a module named TopModule with the following
 interface. All input and output ports are one bit unless otherwise
 specified.
@@ -22,6 +21,7 @@ The output signals should work as follows:
 - ALUSrc: 0 means the second ALU operand comes from the second register file
   (Read data 2); 1 means the second ALU operand is the sign-extended lower
   16 bits of the instruction. Notice the first ALU operand is already the first register file.
+  ALUSrc is 1 for LW, SW, I-type and JALR, and 0 for every other opcode.
 
 - MemtoReg: 0 means the value fed to the register Write data input comes from
   the ALU; 1 means the value fed to the register Write data input comes from
@@ -36,7 +36,7 @@ The output signals should work as follows:
 - MemWrite: Data memory contents designated by the address input are replaced
   by the value on the Write data input.
 
-- ALUOp: The 2-bit signal encodes the operation type - 00 for LW/SW/AUIPC,
+- ALUOp: The 2-bit signal encodes the operation type - 00 for LW/SW/AUIPC/JALR,
   01 for Branch, 10 for R-type/I-type, 11 for JAL/LUI.
 
 - Branch: A control signal indicating that the current instruction may change the program counter (PC).
@@ -48,4 +48,3 @@ The output signals should work as follows:
 - RWSel: The 2-bit signal selects the write back source - 00 for Register
   Write Back, 01 for PC+4 write back (JAL/JALR), 10 for imm-gen write back
   (LUI), 11 for PC+imm-gen write back (AUIPC).
-

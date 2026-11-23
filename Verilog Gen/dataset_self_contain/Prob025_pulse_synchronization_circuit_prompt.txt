@@ -15,11 +15,13 @@ The frequency of clock domain A is 10 times that of clock domain B. The
 intervals between pulses in clock domain A are large, so there is no need
 to consider the problem of pulses being too close together.
 
-When the fast clock domain detects an input pulse, it will toggle a flag
+At every rising edge of clk_fast at which data_in is 1 (sampled as a level,
+not edge-detected), the fast clock domain will toggle a flag
 signal and synchronize it to the slow clock domain. After the slow clock
 domain detects the change in this flag signal, it outputs a corresponding
-single cycle pulse.
+single cycle pulse: data_out is 1 from the second until the third rising edge
+of clk_slow after the clk_fast edge that samples data_in high.
 
-The rst_n signal is an active-low asynchronous reset signal. Assume all
+The rst_n signal is an active-low asynchronous reset signal; data_out is 0
+while it is low. Assume all
 sequential logic is triggered on the positive edge of the clock.
-

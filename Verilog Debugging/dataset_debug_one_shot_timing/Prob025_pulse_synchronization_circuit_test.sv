@@ -67,7 +67,34 @@ module stimulus_gen (
 		repeat(100) @(posedge clk_fast) begin
 			data_in <= $random & 1;
 		end
-		
+
+		// Additional checks: "The rst_n signal is an active-low asynchronous reset signal; data_out
+		// is 0 while it is low." The original stimulus only resets at the start. Here rst_n is asserted
+		// mid-run while data_out is high (between the 2nd and 3rd clk_slow rising edges after an isolated
+		// one-cycle data_in pulse), between clock edges, and held for three clk_slow periods; then isolated
+		// pulses resume after the release.
+		@(posedge clk_fast) data_in <= 0;
+		repeat (5) @(posedge clk_slow);
+		for (int k = 0; k < 3; k++) begin
+			@(posedge clk_slow);
+			repeat (2 + 3 * k) @(posedge clk_fast);
+			data_in <= 1;                    // isolated one-cycle pulse
+			@(posedge clk_fast) data_in <= 0;
+			repeat (2) @(posedge clk_slow);  // data_out is high from here to the next clk_slow edge
+			#22 rst_n <= 0;                  // not on any clock edge
+			repeat (3) @(posedge clk_slow);
+			#22 rst_n <= 1;
+			repeat (3) @(posedge clk_slow);
+			// isolated pulses after the release
+			for (int j = 0; j < 4; j++) begin
+				@(posedge clk_slow);
+				repeat (1 + 2 * j + k) @(posedge clk_fast);
+				data_in <= 1;
+				@(posedge clk_fast) data_in <= 0;
+				repeat (5) @(posedge clk_slow);
+			end
+		end
+
 		#1 $finish;
 	end
 	// === End your code here ===

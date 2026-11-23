@@ -17,6 +17,16 @@ module stimulus_gen (
 
 
 
+    function automatic logic [31:0] eqv(input int i);
+        case (i)
+            0: eqv = 32'h0000_0000;
+            1: eqv = 32'h0000_0001;
+            2: eqv = 32'hffff_ffff;
+            3: eqv = 32'h8000_0000;
+            default: eqv = 32'h7fff_ffff;
+        endcase
+    endfunction
+
     initial begin
         // Directed sweep of opcodes with representative operands
         SrcA <= 32'h8000_0001; // negative with LSB 1
@@ -76,6 +86,38 @@ module stimulus_gen (
                 12: Operation <= 4'hD; // SGE
                 13: Operation <= 4'hE; // SLTU
                 14: Operation <= 4'hF; // SGEU
+            endcase
+        end
+
+        // Additional checks: equal operands. The spec defines EQ/NE/SLT/SGE/SLTU/SGEU results for every
+        // operand pair, but random 32-bit operands are never equal, so the SrcA == SrcB cases were never applied.
+        // Every listed opcode with SrcA == SrcB, on a few representative values.
+        for (int i = 0; i < 5; i++) begin
+            for (int op = 0; op < 16; op++) begin
+                if (op != 11) @(posedge clk) begin
+                    SrcA <= eqv(i);
+                    SrcB <= eqv(i);
+                    Operation <= op[3:0];
+                end
+            end
+        end
+        // Random equal operands and operands differing by +/-1, on the compare opcodes.
+        repeat(200) @(posedge clk) begin
+            logic [31:0] r;
+            r = $urandom;
+            SrcA <= r;
+            unique case ($urandom_range(0,2))
+                0: SrcB <= r;
+                1: SrcB <= r + 32'd1;
+                2: SrcB <= r - 32'd1;
+            endcase
+            unique case ($urandom_range(0,5))
+                0: Operation <= 4'h8;
+                1: Operation <= 4'h9;
+                2: Operation <= 4'hC;
+                3: Operation <= 4'hD;
+                4: Operation <= 4'hE;
+                5: Operation <= 4'hF;
             endcase
         end
 

@@ -29,9 +29,8 @@ Data accumulation process:
 - The module receives 8-bit input data_in when valid_a is high and ready_a is high
 - After receiving 4 input data values, the module outputs the accumulated sum
   as 10-bit data_out with valid_b asserted
-- data_out shows the running sum, updated the cycle after each received input. The first input
-  of a group restarts the sum only if ready_b is high when it is received; otherwise it is added
-  to the previous output sum
+- data_out shows the running sum, updated the cycle after each received input; the first input
+  of a group restarts the sum
 - Both input and output interfaces must support backpressure through ready signals
 - The design must ensure no performance loss when both upstream and downstream
   are ready for full-speed transmission (no bubbles in data flow)

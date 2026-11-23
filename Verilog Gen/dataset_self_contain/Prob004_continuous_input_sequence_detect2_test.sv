@@ -11,42 +11,45 @@ module stimulus_gen (
 );
 
 	initial begin
-		rst_n = 0;
+		rst_n = 1;
 		data = 0;
 		data_valid = 0;
+		#1 rst_n = 0;   // assert reset after time 0 so every design sees the falling edge
 		@(posedge clk);
 		@(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		@(posedge clk);
 		
 		// Test specific sequence: 0110
-		data_valid = 1;
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
-		data_valid = 0;
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
+		data_valid <= 1;
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
+		data_valid <= 0;
 		@(posedge clk);
 		@(posedge clk);
 		
 		// Test with data_valid low (should ignore data)
-		data_valid = 0;
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
+		data_valid <= 0;
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
 		@(posedge clk);
 		
 		// Test overlapping sequences
-		data_valid = 1;
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
+		data_valid <= 1;
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
 		@(posedge clk);
 		
 		// Random testing

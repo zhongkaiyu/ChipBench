@@ -200,7 +200,10 @@ module tb();
 	end
 	
 	// Verification: XORs on the right makes any X in good_vector match anything, but X in dut_vector will only match X.
-	assign tb_match = ( { lcm_out_ref, mcd_out_ref, vld_out_ref } === ( { lcm_out_ref, mcd_out_ref, vld_out_ref } ^ { lcm_out_dut, mcd_out_dut, vld_out_dut } ^ { lcm_out_ref, mcd_out_ref, vld_out_ref } ) );
+	// Where the reference drives lcm_out='hz (the spec requires 'hz while the output is not valid) the DUT must drive
+	// 'hz too; the X-only tolerance below would turn a 'z reference into 'x and reject every design.
+	wire lcm_ok = (lcm_out_ref === 16'bz) ? (lcm_out_dut === 16'bz) : (lcm_out_ref === ( lcm_out_ref ^ lcm_out_dut ^ lcm_out_ref ));
+	assign tb_match = lcm_ok && ( { mcd_out_ref, vld_out_ref } === ( { mcd_out_ref, vld_out_ref } ^ { mcd_out_dut, vld_out_dut } ^ { mcd_out_ref, vld_out_ref } ) );
 	// Use explicit sensitivity list here. @(*) causes NetProc::nex_input() to be called when trying to compute
 	// the sensitivity list of the @(strobe) process, which isn't implemented.
 	always @(posedge clk, negedge clk) begin
@@ -211,7 +214,7 @@ module tb();
 			stats1.errors++;
 		end
 		// === Start your code here ===
-		if (lcm_out_ref !== ( lcm_out_ref ^ lcm_out_dut ^ lcm_out_ref ))
+		if (!lcm_ok)
 		begin if (stats1.errors_lcm_out == 0) stats1.errortime_lcm_out = $time;
 			stats1.errors_lcm_out = stats1.errors_lcm_out+1'b1; end
 		if (mcd_out_ref !== ( mcd_out_ref ^ mcd_out_dut ^ mcd_out_ref ))

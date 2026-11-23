@@ -32,4 +32,5 @@ The waveform generation should work as follows:
   to the current value of wave, so the first clock after reset shows 1.
 - The triangular wave should increment from 0 to maximum (20), then decrement
   back to 0: triangle ramps 0->20 then 20->0, one step per clock. When
-  selected, it first counts down from the current value of wave to 0.
+  selected, it first counts down from the current value of wave to 0 (if wave
+  is already 0 it counts up straight away).

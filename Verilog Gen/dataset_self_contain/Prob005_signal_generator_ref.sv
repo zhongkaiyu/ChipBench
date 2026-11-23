@@ -25,7 +25,7 @@ module RefModule(
             flag <= 0;
         else
             flag <= wave_choice!=2 ? 0:
-                    wave       ==1 ? 1:
+                    wave       <=1 ? 1:
                     wave       ==19? 0:
                     flag;
     end
@@ -41,7 +41,7 @@ module RefModule(
                                  cnt ==19? 0     :
                                  wave;
                 1      : wave <= wave==20? 0     : wave+1;
-                2      : wave <= flag==0 ? wave-1: wave+1;
+                2      : wave <= (flag==0 && wave!=0) ? wave-1: wave+1;
                 default: wave <= 0;
             endcase
     end

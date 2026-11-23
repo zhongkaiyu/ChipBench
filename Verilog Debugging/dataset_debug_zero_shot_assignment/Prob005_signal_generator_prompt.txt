@@ -23,7 +23,8 @@ The waveform generation should work as follows:
   10 clock cycles each
 - The sawtooth wave should increment from 0 to maximum value and then reset
 - The triangular wave should increment from 0 to maximum (20), then decrement back to 0;
-  when triangular mode is selected the wave first decrements to 0
+  when triangular mode is selected the wave first decrements to 0 (if it is
+  already 0 it counts up straight away)
 
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
@@ -54,7 +55,7 @@ module TopModule(
             flag <= 0;
         else
             flag <= wave_choice!=2 ? 0:
-                    wave       ==1 ? 1:
+                    wave       <=1 ? 1:
                     wave       ==20? 0:
                     flag;
     end
@@ -70,7 +71,7 @@ module TopModule(
                                  cnt ==20? 0     :
                                  wave;
                 1      : wave <= wave==20? 0     : wave+1;
-                2      : wave <= flag==0 ? wave-1: wave+1;
+                2      : wave <= (flag==0 && wave!=0) ? wave-1: wave+1;
                 default: wave <= 0;
             endcase
     end

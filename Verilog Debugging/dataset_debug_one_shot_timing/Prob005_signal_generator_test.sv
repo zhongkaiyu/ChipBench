@@ -37,6 +37,12 @@ module stimulus_gen (
         repeat(800) @(posedge clk);
 		
 		
+		// Triangle mode entered with wave = 0 (straight after a reset): it counts up from 0
+		#2 rst_n <= 0;
+		repeat(2) @(posedge clk);
+		#2 rst_n <= 1; wave_choice <= 2;
+		repeat(60) @(posedge clk);
+		
 		#1 $finish;
 	end
 	// === End your code here ===

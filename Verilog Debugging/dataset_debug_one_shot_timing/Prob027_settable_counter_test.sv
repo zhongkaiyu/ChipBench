@@ -16,25 +16,27 @@ module stimulus_gen (
 		rst_n = 0;
 		set = 0;
 		set_num = 0;
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test normal counting
-		set = 0;
+		set <= 0;
 		repeat(20) @(posedge clk); // Count: 0,1,2,3,4,5,6,7,8,9,A,B,C,D,E,F,0,1,2,3
 		
 		// Test set operation
-		set = 1;
-		set_num = 4'hA; @(posedge clk); // Set to A
-		set_num = 4'h5; @(posedge clk); // Set to 5
-		set_num = 4'hF; @(posedge clk); // Set to F
-		set = 0;
+		set <= 1;
+		set_num <= 4'hA; @(posedge clk); // Set to A
+		set_num <= 4'h5; @(posedge clk); // Set to 5
+		set_num <= 4'hF; @(posedge clk); // Set to F
+		set <= 0;
 		@(posedge clk);
 		// Test set to 0 (should trigger zero signal)
-		set = 1;
-		set_num = 4'h0; @(posedge clk); // Set to 0
-		set = 0;
+		set <= 1;
+		set_num <= 4'h0; @(posedge clk); // Set to 0
+		set <= 0;
 		@(posedge clk);
 			
 		// Random testing

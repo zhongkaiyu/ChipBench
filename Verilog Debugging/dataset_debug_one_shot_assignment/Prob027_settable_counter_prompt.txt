@@ -21,8 +21,10 @@ The settable counter should work as follows:
   of set_num instead of incrementing
 - The zero signal is high only when the number equals 0, and low at all
   other times
-- When rst_n is low, the counter should reset to 0
-- the output zero and number will be update on the next rising edge of the clock.
+- When rst_n is low, the counter should reset to 0, and zero is 0
+- the output zero and number will be update on the next rising edge of the clock:
+  number lags the counter by one clock cycle and zero is high when number
+  is 0, so set_num reaches number on the second rising edge after set
 
 Counter operation:
 - Normal counting: Counter increments each clock cycle (0, 1, 2, ..., F, 0, 1, ...).
@@ -85,7 +87,7 @@ endmodule
 
 ======= VCD OUTPUT BEGIN =======
 $date
-	Mon Dec  1 21:24:47 2025
+	Mon Nov 23 00:41:05 2026
 $end
 $version
 	Icarus Verilog
@@ -183,161 +185,158 @@ b0 (
 #90
 0!
 #95
-1"
-1'
 1#
 1!
 #100
 0!
 #105
-0'
-b1 &
-1)
-b1 (
+1"
+1'
 1!
 #110
 0!
 #115
-0"
-b10 (
-0)
-b10 &
+b1 (
+1)
+b1 &
+0'
 1!
 #120
 0!
 #125
 0"
-b11 &
-b11 (
+b10 &
+0)
+b10 (
 1!
 #130
 0!
 #135
 0"
-b100 (
-b100 &
+b11 (
+b11 &
 1!
 #140
 0!
 #145
 0"
-b101 &
-b101 (
+b100 &
+b100 (
 1!
 #150
 0!
 #155
 0"
-b110 (
-b110 &
+b101 (
+b101 &
 1!
 #160
 0!
 #165
 0"
-b111 &
-b111 (
+b110 &
+b110 (
 1!
 #170
 0!
 #175
 0"
-b1000 (
-b1000 &
+b111 (
+b111 &
 1!
 #180
 0!
 #185
 0"
-b1001 &
-b1001 (
+b1000 &
+b1000 (
 1!
 #190
 0!
 #195
 0"
-b1010 (
-b1010 &
+b1001 (
+b1001 &
 1!
 #200
 0!
 #205
 0"
-b1011 &
-b1011 (
+b1010 &
+b1010 (
 1!
 #210
 0!
 #215
 0"
-b1100 (
-b1100 &
+b1011 (
+b1011 &
 1!
 #220
 0!
 #225
 0"
-b1101 &
-b1101 (
+b1100 &
+b1100 (
 1!
 #230
 0!
 #235
 0"
-b1110 (
-b1110 &
+b1101 (
+b1101 &
 1!
 #240
 0!
 #245
 0"
-b1111 &
-b1111 (
+b1110 &
+b1110 (
 1!
 #250
 0!
 #255
-1"
-b0 (
-b0 &
-1'
+0"
+b1111 (
+b1111 &
 1!
 #260
 0!
 #265
-0'
-b1 &
-1)
-b1 (
+1"
+1'
+b0 &
+b0 (
 1!
 #270
 0!
 #275
-0"
-b10 (
-0)
-b10 &
+b1 (
+1)
+b1 &
+0'
 1!
 #280
 0!
 #285
 0"
-b11 &
-b11 (
+b10 &
+0)
+b10 (
 1!
 #290
 0!
 #295
 0"
-b100 (
-b100 &
+b11 (
+b11 &
 1!
 #300
 0!
 #305
 0"
-b101 &
-b101 (
+b100 &
+b100 (
 b1010 %
 1$
 1!
@@ -345,57 +344,56 @@ b1010 %
 0!
 #315
 0"
-b1010 (
-b1010 &
+b101 (
+b101 &
 b101 %
 1!
 #320
 0!
 #325
 0"
-b101 &
-b101 (
+b1010 &
+b1010 (
 b1111 %
 1!
 #330
 0!
 #335
 0"
-b1111 (
-b1111 &
+b101 (
+b101 &
 0$
 1!
 #340
 0!
 #345
-1"
-1'
-b0 &
-b0 (
+0"
+b1111 &
+b1111 (
 b0 %
 1$
 1!
 #350
 0!
 #355
+1"
+b0 (
+b0 &
+1'
 0$
 1!
 #360
 0!
 #365
-0'
-b1 &
-1)
-b1 (
 1!
 #370
 b1 %
 0!
 #375
-0"
-b10 (
-0)
-b10 &
+b1 (
+1)
+b1 &
+0'
 b11 %
 1$
 1!
@@ -404,8 +402,9 @@ b1101 %
 0!
 #385
 0"
-b11 &
-b11 (
+b10 &
+0)
+b10 (
 b10 %
 1!
 #390

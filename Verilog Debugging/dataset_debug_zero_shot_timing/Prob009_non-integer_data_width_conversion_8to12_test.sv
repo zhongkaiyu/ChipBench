@@ -17,33 +17,64 @@ module stimulus_gen (
 		valid_in = 0;
 		data_in = 0;
 		repeat(3) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		// Test first pair: 0xAA, 0x55 (should form 0xAA5)
-		valid_in = 1;
-		data_in = 8'hAA; @(posedge clk);
-		data_in = 8'h55; @(posedge clk);
+		valid_in <= 1;
+		data_in <= 8'hAA; @(posedge clk);
+		data_in <= 8'h55; @(posedge clk);
 		
 		// Test second pair: 0x12, 0x34 (should form 0x123)
-		data_in = 8'h12; @(posedge clk);
-		data_in = 8'h34; @(posedge clk);
+		data_in <= 8'h12; @(posedge clk);
+		data_in <= 8'h34; @(posedge clk);
 		
 		// Test with valid_in low (should ignore data)
-		valid_in = 0;
-		data_in = 8'hFF; @(posedge clk);
-		data_in = 8'hEE; @(posedge clk);
+		valid_in <= 0;
+		data_in <= 8'hFF; @(posedge clk);
+		data_in <= 8'hEE; @(posedge clk);
 		
 		// Test third pair: 0x78, 0x9A (should form 0x789)
-		valid_in = 1;
-		data_in = 8'h78; @(posedge clk);
-		data_in = 8'h9A; @(posedge clk);
+		valid_in <= 1;
+		data_in <= 8'h78; @(posedge clk);
+		data_in <= 8'h9A; @(posedge clk);
 		
 		// Test fourth pair: 0xBC, 0xDE (should form 0xBCD)
-		data_in = 8'hBC; @(posedge clk);
-		data_in = 8'hDE; @(posedge clk);
+		data_in <= 8'hBC; @(posedge clk);
+		data_in <= 8'hDE; @(posedge clk);
 		
 		// Random testing
+		repeat(100) @(posedge clk, negedge clk) begin
+			valid_in <= $random;
+			data_in <= $random % 256;
+		end
+
+		// === Additional checks: asynchronous active-low reset in mid-operation ===
+		// The quoted code clears data_lock, valid_cnt, valid_out and data_out on negedge rst_n; earlier
+		// stimulus only resets at start-up. Inputs and rst_n change 2 time units after posedge (no edge race).
+		// Start from a known state (byte count 0), so the counts noted below hold whatever the earlier
+		// stimulus left behind.
+		@(posedge clk); #2 valid_in <= 0; rst_n <= 0;
+		@(posedge clk); #2 rst_n <= 1;
+		@(posedge clk); #2;
+		valid_in <= 1; data_in <= 8'h3C;
+		@(posedge clk); #2 data_in <= 8'hA7;  // valid_out=1 with data_out != 0 after this edge
+		@(posedge clk); #2 valid_in <= 0;
+		rst_n <= 0;                            // reset while valid_out=1, data_out != 0, valid_cnt = 2
+		repeat(2) @(posedge clk);
+		#2 rst_n <= 1;
+		@(posedge clk); #2;
+		valid_in <= 1; data_in <= 8'h5A;
+		@(posedge clk); #2 valid_in <= 0;     // one byte received (valid_cnt = 1)
+		@(posedge clk); #2;                    // let the outputs after that byte be sampled first
+		rst_n <= 0;                            // reset mid-group
+		@(posedge clk); #2 rst_n <= 1;
+		valid_in <= 1; data_in <= 8'hC3;
+		@(posedge clk); #2 data_in <= 8'h81;
+		@(posedge clk); #2 data_in <= 8'h18;
+		@(posedge clk); #2 valid_in <= 0;
 		repeat(100) @(posedge clk, negedge clk) begin
 			valid_in <= $random;
 			data_in <= $random % 256;

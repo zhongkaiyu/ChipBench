@@ -30,3 +30,5 @@ Data conversion process:
   before producing any output
 
 Clarification: Process inputs in groups of three 8-bit inputs, producing two 12-bit outputs per group (no bits are dropped). On the 2nd input of each group, output {first_byte, second_byte[7:4]} with valid_out high; on the 3rd input, output {second_byte[3:0], third_byte} with valid_out high.
+
+rst_n is an active-low asynchronous reset: while it is low, valid_out and data_out are 0 and inputs are ignored; the first input after release starts a new group. valid_out is high for one cycle per output; data_out holds its value between outputs.

@@ -21,11 +21,11 @@ The data width conversion should work as follows:
 
 Data conversion process:
 - The module receives 8-bit input data_in when valid_in is high
-- The module accumulates two 8-bit inputs to form a 12-bit output
-- The first received 8-bit data should be placed in the high bits of data_out
-- The second received 8-bit data should be placed in the low bits of data_out
-- After receiving exactly 2 input data values, the module outputs data_out
-  with valid_out asserted in the next clock cycle
+- The module accumulates three 8-bit inputs to form two 12-bit outputs
+- The first data_out is {1st input, upper 4 bits of 2nd input}; the second
+  data_out is {lower 4 bits of 2nd input, 3rd input}
+- One clock cycle after the 2nd and after the 3rd input, the module outputs
+  data_out with valid_out asserted; the 4th input starts a new group
 - If only one data input is received, the module waits for the second input
   before producing any output
 

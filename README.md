@@ -60,6 +60,15 @@ Valid models are listed at the top of `scripts/sv-generate`. The number of in-co
 These parameters can be easily swept with a shell script, to create separate build directories for each evaluation harness configuration target. 
 
 
+# Dataset Updates
+
+In November 2026 we revised the datasets with reference to [ChipBench-verified](https://huggingface.co/datasets/chipagents/ChipBench-verified) by chipagents on Hugging Face, a reviewed copy of our test cases. We thank its authors.
+
+- We checked their prompt and testbench fixes in simulation, adopted them, and applied them to every copy of a problem (Verilog Gen, and the zero-shot and one-shot debugging sets). Where a testbench changed, we regenerated the waveforms embedded in the one-shot prompts.
+- Along the way we also fixed testbench races (inputs written with blocking assignments on the clock edge), tests that no design could pass, and several reference models whose behaviour did not match the specification.
+- Results on the affected problems are not directly comparable with earlier versions. Each problem's changes are described in its commit message.
+
+
 # Contact  
 
 If you have any questions or would like further information, please feel free to contact us at 

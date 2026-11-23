@@ -19,6 +19,21 @@ module stimulus_gen (
 		// Test fractional frequency divider for multiple cycles
 		// The divider should achieve 8.7x division ratio
 		repeat(1000) @(posedge clk);
+
+		// === Additional checks: active-low (asynchronous, per the quoted code) reset in mid-operation ===
+		// Earlier stimulus only resets at start-up; rst changes at posedge+2 (no edge race).
+		#2 rst = 0;
+		repeat(3) @(posedge clk);
+		#2 rst = 1;
+		repeat(150) @(posedge clk);           // reset again inside the 9-cycle (div_flag=1) region
+		#2 rst = 0;
+		@(posedge clk);
+		#2 rst = 1;
+		repeat(53) @(posedge clk);
+		#2 rst = 0;
+		repeat(2) @(posedge clk);
+		#2 rst = 1;
+		repeat(300) @(posedge clk);
 		
 		
 		#1 $finish;

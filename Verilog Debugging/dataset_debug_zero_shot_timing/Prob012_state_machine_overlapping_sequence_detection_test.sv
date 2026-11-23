@@ -15,32 +15,32 @@ module stimulus_gen (
 		rst = 0;
 		data = 0;
 		repeat(10) @(posedge clk);
-		rst = 1;
+		rst <= 1;
 		@(posedge clk);
 		
 		// Test sequence "1011" - should detect once
-		data = 1; @(posedge clk);  // First bit
-		data = 0; @(posedge clk);  // Second bit
-		data = 1; @(posedge clk);  // Third bit
-		data = 1; @(posedge clk);  // Fourth bit - should detect here
+		data <= 1; @(posedge clk);  // First bit
+		data <= 0; @(posedge clk);  // Second bit
+		data <= 1; @(posedge clk);  // Third bit
+		data <= 1; @(posedge clk);  // Fourth bit - should detect here
 		
 		// Test overlapping sequences "10110111" - should detect twice
-		data = 0; @(posedge clk);  // Fifth bit
-		data = 1; @(posedge clk);  // Sixth bit
-		data = 1; @(posedge clk);  // Seventh bit - should detect here
-		data = 1; @(posedge clk);  // Eighth bit
+		data <= 0; @(posedge clk);  // Fifth bit
+		data <= 1; @(posedge clk);  // Sixth bit
+		data <= 1; @(posedge clk);  // Seventh bit - should detect here
+		data <= 1; @(posedge clk);  // Eighth bit
 		
 		// Test non-matching sequence
-		data = 0; @(posedge clk);
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
+		data <= 0; @(posedge clk);
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
 		
 		// Test another "1011" sequence
-		data = 1; @(posedge clk);
-		data = 0; @(posedge clk);
-		data = 1; @(posedge clk);
-		data = 1; @(posedge clk);  // Should detect here
+		data <= 1; @(posedge clk);
+		data <= 0; @(posedge clk);
+		data <= 1; @(posedge clk);
+		data <= 1; @(posedge clk);  // Should detect here
 		
 		// Random testing
 		repeat(100) @(posedge clk, negedge clk) begin

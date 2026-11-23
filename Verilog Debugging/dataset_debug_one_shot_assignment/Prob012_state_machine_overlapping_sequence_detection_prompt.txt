@@ -16,7 +16,8 @@ The sequence detection should work as follows:
 - Detect when the sequence "1011" appears in the input
 - Support overlapping detection: "10110111" should be detected twice
 - Output flag signal should be high for one clock cycle when the sequence
-  is detected, starting from the next clock cycle after detection
+  is detected, starting from the next clock cycle after detection, that is
+  two clock cycles after the final '1' is on data
 
 
 Based on the problem description above, the code below in TopModule has bug, please fix that:
@@ -65,7 +66,7 @@ endmodule
 
 ======= VCD OUTPUT BEGIN =======
 $date
-	Mon Dec  1 21:24:35 2025
+	Mon Nov 23 00:30:19 2026
 $end
 $version
 	Icarus Verilog

@@ -17,41 +17,41 @@ module stimulus_gen (
 		valid_a = 0;
 		data_a = 0;
 		repeat(4)@(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test serial data input: 6 bits per group
 		// First group: 101010
-		valid_a = 1;
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
+		valid_a <= 1;
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
 		
 		// Second group: 110011
-		data_a = 1; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
 		
 		// Test with valid_a low (should ignore data)
-		valid_a = 0;
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 1; @(posedge clk);
+		valid_a <= 0;
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 1; @(posedge clk);
 		
 		// Third group: 111000
-		valid_a = 1;
-		data_a = 1; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 1; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 0; @(posedge clk);
-		data_a = 0; @(posedge clk);
+		valid_a <= 1;
+		data_a <= 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 0; @(posedge clk);
 		
 		// Random testing
 		repeat(100) @(posedge clk, negedge clk) begin

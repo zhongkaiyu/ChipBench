@@ -26,6 +26,9 @@ Data conversion process:
 - The module receives single-bit input data_a when valid_a is high
 - After receiving 6 input data bits, the module outputs the concatenated
   6-bit data_b with valid_b asserted
+- valid_b is high in each cycle after one in which 5 bits of the current
+  group had been received, even before the 6th bit arrives; data_b then still
+  holds the previous group
 - The first received data bit should be placed in the LSB (bit 0) of data_b
 - The last received data bit should be placed in the MSB (bit 5) of data_b
 - ready_a is always high indicates the module is always ready to receive input data
@@ -86,7 +89,7 @@ endmodule
 
 ======= VCD OUTPUT BEGIN =======
 $date
-	Mon Dec  1 21:24:39 2025
+	Mon Nov 23 00:13:29 2026
 $end
 $version
 	Icarus Verilog
@@ -170,14 +173,14 @@ b0 +
 #30
 0!
 #35
-0"
-1'
-1&
 1#
 1!
 #40
 0!
 #45
+0"
+1&
+1'
 1%
 1$
 1!
@@ -204,20 +207,20 @@ b0 +
 #90
 0!
 #95
-1"
-1(
-b10101 *
 0%
 1!
 #100
 0!
 #105
-0(
+1"
+b10101 *
+1(
 1%
 1!
 #110
 0!
 #115
+0(
 1!
 #120
 0!
@@ -236,18 +239,18 @@ b10101 *
 #150
 0!
 #155
-1(
-b110011 *
 1!
 #160
 0!
 #165
-0(
+b110011 *
+1(
 0$
 1!
 #170
 0!
 #175
+0(
 0%
 1!
 #180
@@ -280,19 +283,19 @@ b110011 *
 #240
 0!
 #245
-b111 *
-1(
 1!
 #250
 0!
 #255
-0(
+1(
+b111 *
 1!
 #260
 1%
 0$
 0!
 #265
+0(
 1$
 1!
 #270
@@ -321,7 +324,6 @@ b111 *
 0$
 0!
 #315
-1(
 0%
 1!
 #320
@@ -333,14 +335,13 @@ b111 *
 1$
 0!
 #335
-b100110 *
 0%
 1!
 #340
 0$
 0!
 #345
-0(
+1(
 1%
 1!
 #350
@@ -351,6 +352,7 @@ b100110 *
 #360
 0!
 #365
+b110011 *
 0%
 0$
 1!
@@ -359,6 +361,7 @@ b100110 *
 1$
 0!
 #375
+0(
 0%
 1!
 #380
@@ -396,7 +399,6 @@ b100110 *
 0$
 0!
 #435
-1(
 1$
 1!
 #440
@@ -418,20 +420,21 @@ b100110 *
 1%
 0!
 #465
-b110011 *
 0%
 1!
 #470
 1%
 0!
 #475
-0(
+1(
+b111001 *
 0%
 0$
 1!
 #480
 0!
 #485
+0(
 1%
 1$
 1!
@@ -482,21 +485,21 @@ b110011 *
 1$
 0!
 #565
-b111111 *
-1(
 0$
 1!
 #570
 1$
 0!
 #575
-0(
+1(
+b111111 *
 0%
 1!
 #580
 0$
 0!
 #585
+0(
 1$
 1!
 #590
@@ -582,8 +585,6 @@ b111111 *
 1$
 0!
 #715
-1(
-b1011 *
 1%
 1!
 #720
@@ -591,18 +592,20 @@ b1011 *
 0$
 0!
 #725
-0(
+1(
 1!
 #730
 1$
 0!
 #735
+b101 *
 0$
 1!
 #740
 1%
 0!
 #745
+0(
 1$
 1!
 #750

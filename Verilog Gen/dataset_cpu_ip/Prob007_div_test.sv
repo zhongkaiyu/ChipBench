@@ -34,100 +34,130 @@ module stimulus_gen (
 		start_i = `DivStop;
 		annul_i = 1'b0;
 		
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
 		// Hold reset for a few cycles
 		@(posedge clk);
 		@(posedge clk);
 		@(posedge clk);
 		
 		// Release reset
-		rst = `RstDisable;
+		rst <= `RstDisable;
 		@(posedge clk);
 		
 		// Test 1: Simple unsigned division (100 / 5 = 20 remainder 0)
-		signed_div_i = 1'b0;
-		opdata1_i = 32'd100;
-		opdata2_i = 32'd5;
-		start_i = `DivStart;
-		annul_i = 1'b0;
-		// Keep start_i asserted for 33 cycles (32 cycles for calculation + 1 for DivEnd)
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		signed_div_i <= 1'b0;
+		opdata1_i <= 32'd100;
+		opdata2_i <= 32'd5;
+		start_i <= `DivStart;
+		annul_i <= 1'b0;
+		// Keep start_i asserted until the result has appeared: ready_o rises on the 34th edge after the
+		// edge that samples start_i = 1, and the result is dropped if start_i is 0 on that edge
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk); // Wait for result to be cleared
 		repeat(5) @(posedge clk);
 		
 		// Test 2: Unsigned division with remainder (100 / 7 = 14 remainder 2)
-		opdata1_i = 32'd100;
-		opdata2_i = 32'd7;
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'd100;
+		opdata2_i <= 32'd7;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 3: Division by zero
-		opdata1_i = 32'd100;
-		opdata2_i = `ZeroWord;
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'd100;
+		opdata2_i <= `ZeroWord;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 4: Signed division (positive / positive)
-		signed_div_i = 1'b1;
-		opdata1_i = 32'd100;
-		opdata2_i = 32'd5;
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		signed_div_i <= 1'b1;
+		opdata1_i <= 32'd100;
+		opdata2_i <= 32'd5;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 5: Signed division (negative / positive)
-		opdata1_i = 32'hFFFFFF9C; // -100 in two's complement
-		opdata2_i = 32'd5;
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'hFFFFFF9C; // -100 in two's complement
+		opdata2_i <= 32'd5;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 6: Signed division (positive / negative)
-		opdata1_i = 32'd100;
-		opdata2_i = 32'hFFFFFFFB; // -5 in two's complement
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'd100;
+		opdata2_i <= 32'hFFFFFFFB; // -5 in two's complement
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 7: Signed division (negative / negative)
-		opdata1_i = 32'hFFFFFF9C; // -100
-		opdata2_i = 32'hFFFFFFFB; // -5
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'hFFFFFF9C; // -100
+		opdata2_i <= 32'hFFFFFFFB; // -5
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
+		@(posedge clk);
+		repeat(5) @(posedge clk);
+		
+		// Test 7a: Signed division with a nonzero remainder (negative / positive, 100 and 7)
+		opdata1_i <= 32'hFFFFFF9C;
+		opdata2_i <= 32'd7;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
+		@(posedge clk);
+		repeat(5) @(posedge clk);
+		
+		// Test 7b: Signed division with a nonzero remainder (positive / negative, 100 and 7)
+		opdata1_i <= 32'd100;
+		opdata2_i <= 32'hFFFFFFF9;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
+		@(posedge clk);
+		repeat(5) @(posedge clk);
+		
+		// Test 7c: Signed division with a nonzero remainder (negative / negative, 100 and 7)
+		opdata1_i <= 32'hFFFFFF9C;
+		opdata2_i <= 32'hFFFFFFF9;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		
 		// Test 8: Annul test - cancel during calculation
-		opdata1_i = 32'd1000;
-		opdata2_i = 32'd3;
-		start_i = `DivStart;
-		annul_i = 1'b0;
+		opdata1_i <= 32'd1000;
+		opdata2_i <= 32'd3;
+		start_i <= `DivStart;
+		annul_i <= 1'b0;
 		repeat(10) @(posedge clk); // Wait a bit
-		annul_i = 1'b1; // Cancel the operation
+		annul_i <= 1'b1; // Cancel the operation
 		@(posedge clk);
-		annul_i = 1'b0;
-		start_i = `DivStop;
+		annul_i <= 1'b0;
+		start_i <= `DivStop;
 		repeat(5) @(posedge clk);
 		
 		// Test 9: Large numbers
-		opdata1_i = 32'hFFFFFFFF;
-		opdata2_i = 32'd1;
-		start_i = `DivStart;
-		repeat(33) @(posedge clk);
-		start_i = `DivStop;
+		opdata1_i <= 32'hFFFFFFFF;
+		opdata2_i <= 32'd1;
+		start_i <= `DivStart;
+		repeat(35) @(posedge clk);
+		start_i <= `DivStop;
 		@(posedge clk);
 		repeat(5) @(posedge clk);
 		

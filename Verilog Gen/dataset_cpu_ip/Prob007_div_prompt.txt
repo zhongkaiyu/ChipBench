@@ -1,4 +1,3 @@
-
 I would like you to implement a module named TopModule with the following
 interface.
 
@@ -20,13 +19,22 @@ The module behavior is as follows:
 
 - When signed_div_i is 1, the division is signed; when it is 0, the division
   is unsigned. For signed division, the module should automatically perform
-  two's complement conversion on the operands as needed.
+  two's complement conversion on the operands as needed. Result signs follow
+  signed_div_i, opdata1_i and opdata2_i at the clock edge before ready_o
+  rises: the quotient is negated if the operand signs differ, the
+  remainder if opdata1_i is negative.
 
-- The division operation is initiated when start_i is asserted (start_i = 1).
+- The division operation is initiated when start_i is asserted (start_i = 1)
+  while idle; start_i is otherwise ignored. start_i must stay 1 until
+  ready_o = 1: if it is 0 on the edge where the result would appear, the
+  result is discarded and the module returns to idle.
 
 - During calculation, the module uses a hardware algorithm that performs
   sequential shifting and subtraction operations to compute the quotient and
   remainder.
+
+- If opdata2_i is 0, ready_o rises on the 2nd rising edge after the edge that
+  samples start_i = 1, with result_o = 0.
 
 - The annul_i signal can be used to cancel an ongoing division operation
   mid-calculation. When annul_i is asserted, the current calculation should
@@ -37,11 +45,13 @@ The module behavior is as follows:
 
 - The ready_o signal indicates when the division result is ready: ready_o = 1
   means the result is ready and valid, ready_o = 0 means the result is not
-  ready yet.
+  ready yet. ready_o rises on the 34th rising edge after the edge that samples
+  start_i = 1; ready_o and result_o then hold while start_i stays 1 and return
+  to 0 on the first edge that samples start_i = 0. result_o is 0 whenever
+  ready_o is 0.
 
 - When reset is active (rst == 1), the module should initialize to an idle
   state.
 
 Assume all sequential logic is triggered on the positive edge of the clock.
 The reset signal is active high (rst == 1 means reset is active).
-

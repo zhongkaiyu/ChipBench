@@ -9,70 +9,78 @@ module stimulus_gen (
 	output logic rst_n,
 	output logic winc,
 	output logic rinc,
-	output logic [7:0] wdata
+	output logic [7:0] wdata,
+	output logic rst_n2,
+	output logic winc2,
+	output logic rinc2,
+	output logic [7:0] wdata2
     // === End your code here ===
 );
 	// === Start your code here ===
 	initial begin
+		rst_n2 = 0;
+		winc2 = 0;
+		rinc2 = 0;
+		wdata2 = 0;
 		rst_n = 0;
 		winc = 0;
 		rinc = 0;
 		wdata = 0;
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test basic write operations
-		winc = 1;
-		wdata = 8'hAA; @(posedge clk);
-		wdata = 8'h55; @(posedge clk);
-		wdata = 8'h33; @(posedge clk);
-		wdata = 8'hCC; @(posedge clk);
-		winc = 0;
+		winc <= 1;
+		wdata <= 8'hAA; @(posedge clk);
+		wdata <= 8'h55; @(posedge clk);
+		wdata <= 8'h33; @(posedge clk);
+		wdata <= 8'hCC; @(posedge clk);
+		winc <= 0;
 		@(posedge clk);
 		
 		// Test basic read operations
-		rinc = 1;
+		rinc <= 1;
 		repeat(4) @(posedge clk);
-		rinc = 0;
+		rinc <= 0;
 		@(posedge clk);
 		
 		// Test simultaneous write and read
-		winc = 1;
-		rinc = 1;
-		wdata = 8'h11; @(posedge clk);
-		wdata = 8'h22; @(posedge clk);
-		wdata = 8'h44; @(posedge clk);
-		wdata = 8'h88; @(posedge clk);
-		winc = 0;
-		rinc = 0;
+		winc <= 1;
+		rinc <= 1;
+		wdata <= 8'h11; @(posedge clk);
+		wdata <= 8'h22; @(posedge clk);
+		wdata <= 8'h44; @(posedge clk);
+		wdata <= 8'h88; @(posedge clk);
+		winc <= 0;
+		rinc <= 0;
 		@(posedge clk);
 		
 		// Test FIFO full condition
-		winc = 1;
-		wdata = 8'hF0; @(posedge clk);
-		wdata = 8'hF1; @(posedge clk);
-		wdata = 8'hF2; @(posedge clk);
-		wdata = 8'hF3; @(posedge clk);
-		wdata = 8'hF4; @(posedge clk);
-		wdata = 8'hF5; @(posedge clk);
-		wdata = 8'hF6; @(posedge clk);
-		wdata = 8'hF7; @(posedge clk);
-		wdata = 8'hF8; @(posedge clk);
-		wdata = 8'hF9; @(posedge clk);
-		wdata = 8'hFA; @(posedge clk);
-		wdata = 8'hFB; @(posedge clk);
-		wdata = 8'hFC; @(posedge clk);
-		wdata = 8'hFD; @(posedge clk);
-		wdata = 8'hFE; @(posedge clk);
-		wdata = 8'hFF; @(posedge clk); // Should trigger wfull
-		winc = 0;
+		winc <= 1;
+		wdata <= 8'hF0; @(posedge clk);
+		wdata <= 8'hF1; @(posedge clk);
+		wdata <= 8'hF2; @(posedge clk);
+		wdata <= 8'hF3; @(posedge clk);
+		wdata <= 8'hF4; @(posedge clk);
+		wdata <= 8'hF5; @(posedge clk);
+		wdata <= 8'hF6; @(posedge clk);
+		wdata <= 8'hF7; @(posedge clk);
+		wdata <= 8'hF8; @(posedge clk);
+		wdata <= 8'hF9; @(posedge clk);
+		wdata <= 8'hFA; @(posedge clk);
+		wdata <= 8'hFB; @(posedge clk);
+		wdata <= 8'hFC; @(posedge clk);
+		wdata <= 8'hFD; @(posedge clk);
+		wdata <= 8'hFE; @(posedge clk);
+		wdata <= 8'hFF; @(posedge clk); // Should trigger wfull
+		winc <= 0;
 		@(posedge clk);
 		
 		// Test FIFO empty condition
-		rinc = 1;
+		rinc <= 1;
 		repeat(20) @(posedge clk); // Should trigger rempty
-		rinc = 0;
+		rinc <= 0;
 		@(posedge clk);
 		
 		// Random testing
@@ -81,6 +89,36 @@ module stimulus_gen (
 			rinc <= $random;
 			wdata <= $random % 256;
 		end
+		
+		// Additional checks: "The FIFO should be parameterizable in both WIDTH and DEPTH".
+		// A second pair of instances with DEPTH = 4 and DEPTH = 32 (WIDTH = 8) is compared with
+		// RefModule at the same depths (see tb); until now it was held in reset.
+		@(negedge clk) rst_n2 = 1;
+		@(posedge clk);
+		winc2 <= 1;                              // fill past full for DEPTH 4 and 32
+		repeat(36) begin wdata2 <= $urandom; @(posedge clk); end
+		winc2 <= 0;
+		rinc2 <= 1;                              // drain past empty
+		repeat(36) @(posedge clk);
+		rinc2 <= 0;
+		@(posedge clk);
+		winc2 <= 1; rinc2 <= 1;                  // simultaneous read/write
+		repeat(10) begin wdata2 <= $urandom; @(posedge clk); end
+		winc2 <= 0; rinc2 <= 0;
+		repeat(300) begin                        // random, write-biased then read-biased
+			winc2 <= ($urandom % 4) != 0;
+			rinc2 <= ($urandom % 2);
+			wdata2 <= $urandom;
+			@(posedge clk);
+		end
+		repeat(300) begin
+			winc2 <= ($urandom % 2);
+			rinc2 <= ($urandom % 4) != 0;
+			wdata2 <= $urandom;
+			@(posedge clk);
+		end
+		winc2 <= 0; rinc2 <= 0;
+		repeat(2) @(posedge clk);
 		
 		#1 $finish;
 	end
@@ -127,6 +165,12 @@ module tb();
 	logic wfull_dut;
 	logic rempty_dut;
 	logic [7:0] rdata_dut;
+	// additional check: DEPTH = 4 and DEPTH = 32 instances
+	logic rst_n2, winc2, rinc2;
+	logic [7:0] wdata2;
+	logic wfull_ref4, rempty_ref4, wfull_dut4, rempty_dut4, wfull_ref32, rempty_ref32, wfull_dut32, rempty_dut32;
+	logic [7:0] rdata_ref4, rdata_dut4, rdata_ref32, rdata_dut32;
+	int errors_depth;
 	// === End your code here ===
 
 	initial begin 
@@ -146,7 +190,11 @@ module tb();
 		.rst_n,
 		.winc,
 		.rinc,
-		.wdata );
+		.wdata,
+		.rst_n2,
+		.winc2,
+		.rinc2,
+		.wdata2 );
 		
 	RefModule good1 (
 		.clk,
@@ -167,6 +215,14 @@ module tb();
 		.wfull(wfull_dut),
 		.rempty(rempty_dut),
 		.rdata(rdata_dut) );
+	RefModule #(.WIDTH(8), .DEPTH(4)) good4 (.clk, .rst_n(rst_n2), .winc(winc2), .rinc(rinc2), .wdata(wdata2),
+		.wfull(wfull_ref4), .rempty(rempty_ref4), .rdata(rdata_ref4) );
+	TopModule #(.WIDTH(8), .DEPTH(4)) top_module4 (.clk, .rst_n(rst_n2), .winc(winc2), .rinc(rinc2), .wdata(wdata2),
+		.wfull(wfull_dut4), .rempty(rempty_dut4), .rdata(rdata_dut4) );
+	RefModule #(.WIDTH(8), .DEPTH(32)) good32 (.clk, .rst_n(rst_n2), .winc(winc2), .rinc(rinc2), .wdata(wdata2),
+		.wfull(wfull_ref32), .rempty(rempty_ref32), .rdata(rdata_ref32) );
+	TopModule #(.WIDTH(8), .DEPTH(32)) top_module32 (.clk, .rst_n(rst_n2), .winc(winc2), .rinc(rinc2), .wdata(wdata2),
+		.wfull(wfull_dut32), .rempty(rempty_dut32), .rdata(rdata_dut32) );
 	// === End your code here ===
 
 	
@@ -179,6 +235,17 @@ module tb();
 	endtask	
 
 	
+	// additional check check: the DEPTH = 4 / 32 instances match RefModule at the same depth (X in ref = don't care).
+	wire [9:0] v_ref4 = {wfull_ref4, rempty_ref4, rdata_ref4}, v_dut4 = {wfull_dut4, rempty_dut4, rdata_dut4};
+	wire [9:0] v_ref32 = {wfull_ref32, rempty_ref32, rdata_ref32}, v_dut32 = {wfull_dut32, rempty_dut32, rdata_dut32};
+	always @(posedge clk, negedge clk) begin
+		if (v_ref4 !== (v_ref4 ^ v_dut4 ^ v_ref4) || v_ref32 !== (v_ref32 ^ v_dut32 ^ v_ref32)) begin
+			if (errors_depth == 0) $display("Hint: DEPTH=4/32 instance mismatch first at time %0d", $time);
+			errors_depth++;
+			stats1.errors++;
+		end
+	end
+
 	final begin
 		// === Start your code here ===
 		if (stats1.errors_wfull) $display("Hint: Output '%s' has %0d mismatches. First mismatch occurred at time %0d.", "wfull", stats1.errors_wfull, stats1.errortime_wfull);

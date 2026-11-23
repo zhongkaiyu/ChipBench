@@ -63,4 +63,4 @@ end
 
 endmodule  
 ```
-
+The final evaluation compiles this module together with TopModule.sv, so do not define a module named dual_port_RAM in TopModule.sv.

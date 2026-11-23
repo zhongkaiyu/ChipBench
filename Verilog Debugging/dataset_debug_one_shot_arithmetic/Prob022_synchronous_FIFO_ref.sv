@@ -46,7 +46,7 @@ wire [DP_WD :0]fifo_cnt = (waddr[DP_WD] == raddr[DP_WD]) ? waddr[DP_WD-1:0] - ra
 assign rempty = (fifo_cnt == 0);
 assign wfull = (fifo_cnt == DEPTH);
  
-dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH))
+RefModule_dual_port_RAM #(.DEPTH(DEPTH), .WIDTH(WIDTH))
 u_ram (
 	.wclk	(clk),
 	.wenc	(wenc),
@@ -59,3 +59,30 @@ u_ram (
 );
  
 endmodule
+
+// Copy of the dual_port_RAM given in the spec, renamed so the reference does not use the design's RAM.
+module RefModule_dual_port_RAM #(parameter DEPTH = 16,
+					   parameter WIDTH = 8)(
+	 input wclk
+	,input wenc
+	,input [$clog2(DEPTH)-1:0] waddr  //Take log2 of depth to get address bit width.
+	,input [WIDTH-1:0] wdata      	//Data write
+	,input rclk
+	,input renc
+	,input [$clog2(DEPTH)-1:0] raddr  //Take log2 of depth to get address bit width.
+	,output reg [WIDTH-1:0] rdata 		//Data output
+);
+ 
+reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+ 
+always @(posedge wclk) begin
+	if(wenc)
+		RAM_MEM[waddr] <= wdata;
+end 
+ 
+always @(posedge rclk) begin
+	if(renc)
+		rdata <= RAM_MEM[raddr];
+end 
+ 
+endmodule  

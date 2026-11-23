@@ -28,6 +28,10 @@ Data conversion process:
   with valid_out asserted in the next clock cycle
 - If only one data input is received, the module waits for the second input
   before producing any output
+- data_out changes only when a pair is output; otherwise it holds its last
+  value (0 after reset)
 
 Clarification: valid_out and data_out are asserted on the clock edge immediately following receipt of the second 8-bit input (exactly one register stage / one cycle of latency), with no additional buffering or pipeline stage.
 
+Reset: rst_n is an active-low asynchronous reset; while it is low, valid_out and
+data_out are 0 and a pending first byte is discarded.

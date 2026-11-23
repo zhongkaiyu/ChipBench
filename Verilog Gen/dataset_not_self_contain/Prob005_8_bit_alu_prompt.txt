@@ -1,4 +1,3 @@
-
 I would like you to implement a module named TopModule with the following
 interface. All input and output ports are one bit unless otherwise
 specified.
@@ -12,7 +11,7 @@ This project implements a concise 8-bit Arithmetic Logic Unit (ALU). It
 receives two 8-bit input operands (in_A and in_B) and a 2-bit control signal
 (in_operation), and through the combination of internal bitwise AND, bitwise
 OR, adder (ADDER), and multiplexer (MUX) modules, it implements four basic
-operations: A AND B, A OR B, A + B, and A - B. The design structure is clear
+operations: A AND B, A OR B, A + B, and A + ~B (A - B - 1 modulo 256). The design structure is clear
 and modular, with each submodule responsible for a single function, and
 finally the top-level ALU module selects the corresponding operation result
 based on the control signal and outputs it to out_c. This design approach not
@@ -35,7 +34,7 @@ Input ports:
   - 00 → Perform bitwise AND (A AND B)
   - 01 → Perform bitwise OR (A OR B)
   - 10 → Perform addition (A + B)
-  - 11 → Perform subtraction (A - B)
+  - 11 → Perform subtraction as A + ~B (A - B - 1 modulo 256)
 
   The control signal structure:
   - The low bit in_operation[0] simultaneously controls the OR/AND selection
@@ -49,7 +48,7 @@ Output ports:
   - When in_operation = 00 → Output A AND B
   - When in_operation = 01 → Output A OR B
   - When in_operation = 10 → Output A + B
-  - When in_operation = 11 → Output A - B
+  - When in_operation = 11 → Output A + ~B (A - B - 1 modulo 256)
 
   Therefore, out_c may be either a logic result or an arithmetic result.
 

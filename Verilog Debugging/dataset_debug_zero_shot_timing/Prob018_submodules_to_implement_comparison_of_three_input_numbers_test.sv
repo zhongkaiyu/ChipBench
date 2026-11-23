@@ -9,11 +9,13 @@ module stimulus_gen (
 	output logic rst_n,
 	output logic [7:0] a,
 	output logic [7:0] b,
-	output logic [7:0] c
+	output logic [7:0] c,
+	output logic chk
     // === End your code here ===
 );
 	// === Start your code here ===
     initial begin
+		chk = 0;
 		rst_n <= 0;
 		a <= 0;
 		b <= 0;
@@ -79,6 +81,22 @@ module stimulus_gen (
 			c <= $random & 255;
 		end
 		
+		// Additional checks: the reference instantiates the candidate's own slave_mod, so the
+		// compare itself is only checked against itself. Hold a, b, c steady for 4 cycles and
+		// check d == the minimum of the three unsigned inputs (latency-agnostic, see tb).
+		repeat(60) begin
+			case ($urandom % 4)
+				0: begin a <= $urandom; b <= $urandom; c <= $urandom; end
+				1: begin a <= 8'h80 | $urandom; b <= $urandom & 8'h7F; c <= 8'h80 | $urandom; end
+				2: begin a <= $urandom & 8'h7F; b <= 8'h80 | $urandom; c <= 8'h80 | $urandom; end
+				3: begin a <= 8'h80 | $urandom; b <= 8'h80 | $urandom; c <= $urandom & 8'h7F; end
+			endcase
+			repeat(3) @(posedge clk);
+			chk <= 1;
+			@(posedge clk);
+			chk <= 0;
+		end
+		
 		#1 $finish;
 	end
 	// === End your code here ===
@@ -116,6 +134,8 @@ module tb();
 	logic [7:0] c;
 	logic [7:0] d_ref;
 	logic [7:0] d_dut;
+	logic chk;
+	int errors_min;
 	// === End your code here ===
 
 	initial begin 
@@ -135,7 +155,8 @@ module tb();
 		.rst_n,
 		.a,
 		.b,
-		.c
+		.c,
+		.chk
 	);
 		
 	RefModule good1 (
@@ -167,6 +188,16 @@ module tb();
 	endtask	
 
 	
+	// additional check check: with a, b, c held for 3+ cycles, d must equal min(a, b, c) (unsigned).
+	wire [7:0] min_abc = (a < b) ? ((a < c) ? a : c) : ((b < c) ? b : c);
+	always @(negedge clk) if (chk) begin
+		if (d_dut !== min_abc) begin
+			if (errors_min == 0) $display("Hint: d is not min(a,b,c) at time %0d: a=%0d b=%0d c=%0d d=%0d", $time, a, b, c, d_dut);
+			errors_min++;
+			stats1.errors++;
+		end
+	end
+
 	final begin
 		// === Start your code here ===
 		if (stats1.errors_d) $display("Hint: Output '%s' has %0d mismatches. First mismatch occurred at time %0d.", "d", stats1.errors_d, stats1.errortime_d);

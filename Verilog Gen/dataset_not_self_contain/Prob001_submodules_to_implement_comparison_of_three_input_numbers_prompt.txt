@@ -23,5 +23,9 @@ The submodule should take two 8-bit inputs (data_a and data_b) and output
 the smaller of the two values. In the main module, use this submodule to
 determine the minimum value among a, b, and c.
 
+d has two cycles of latency: at each rising edge of clk, d takes the minimum
+of a, b and c sampled at the previous rising edge. d is 0 while rst_n is low
+and until the second rising edge after rst_n is released.
+
 The rst_n signal is an active-low asynchronous reset signal. Assume all
 sequential logic is triggered on the positive edge of the clock.

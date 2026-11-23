@@ -19,8 +19,8 @@ that compares two 8-bit unsigned numbers and outputs the smaller one.
 Then, in the main module (TopModule), instantiate this submodule to find
 the minimum among three 8-bit unsigned inputs.
 
-The submodule should take two 8-bit inputs (data_a and data_b) and output
-the smaller of the two values. In the main module, use this submodule to
+The submodule should take two 8-bit inputs (a and b) and output
+the smaller of the two values. Keep it as `slave_mod` with the ports of the code below. In the main module, use this submodule to
 determine the minimum value among a, b, and c.
 
 The rst_n signal is an active-low asynchronous reset signal. Assume all

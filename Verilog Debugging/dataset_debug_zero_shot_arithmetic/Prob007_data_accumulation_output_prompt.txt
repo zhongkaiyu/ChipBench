@@ -28,7 +28,9 @@ Data accumulation process:
 - The module receives 8-bit input data_in when valid_a is high and ready_a is high
 - After receiving 4 input data values, the module outputs the accumulated sum
   as 10-bit data_out with valid_b asserted
-- The output data_out represents the sum of the 4 most recently received inputs
+- The output data_out represents the sum of the 4 most recently received inputs;
+  if ready_b is low when the first input of a group is received, that input is
+  added to the previous sum instead
 - Both input and output interfaces must support backpressure through ready signals
 - The design must ensure no performance loss when both upstream and downstream
   are ready for full-speed transmission (no bubbles in data flow)

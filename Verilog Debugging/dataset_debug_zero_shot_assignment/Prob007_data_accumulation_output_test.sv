@@ -18,45 +18,71 @@ module stimulus_gen (
 		valid_a = 0;
 		ready_b = 0;
 		repeat(10) @(posedge clk);
-		rst_n = 1;
+		rst_n <= 1;
 		@(posedge clk);
 		
 		// Test first group of 4 values: 1, 2, 3, 4 (sum = 10)
-		valid_a = 1;
-		data_in = 8'd1; @(posedge clk);
-		data_in = 8'd2; @(posedge clk);
-		data_in = 8'd3; @(posedge clk);
-		data_in = 8'd4; @(posedge clk);
+		valid_a <= 1;
+		data_in <= 8'd1; @(posedge clk);
+		data_in <= 8'd2; @(posedge clk);
+		data_in <= 8'd3; @(posedge clk);
+		data_in <= 8'd4; @(posedge clk);
 		
-		data_in = 8'd5; @(posedge clk);
+		data_in <= 8'd5; @(posedge clk);
         @(posedge clk);
         @(posedge clk);
-        ready_b = 1;
+        ready_b <= 1;
 
-		data_in = 8'd6; @(posedge clk);
-		data_in = 8'd7; @(posedge clk);
-		data_in = 8'd8; @(posedge clk);
+		data_in <= 8'd6; @(posedge clk);
+		data_in <= 8'd7; @(posedge clk);
+		data_in <= 8'd8; @(posedge clk);
 		
 		// Test with valid_a low (should ignore data)
-		valid_a = 0;
-		data_in = 8'd10; @(posedge clk);
-		data_in = 8'd20; @(posedge clk);
+		valid_a <= 0;
+		data_in <= 8'd10; @(posedge clk);
+		data_in <= 8'd20; @(posedge clk);
 		
 		// Test with ready_b low (backpressure)
-		valid_a = 1;
-		ready_b = 0;
-		data_in = 8'd1; @(posedge clk);
-		data_in = 8'd2; @(posedge clk);
+		valid_a <= 1;
+		ready_b <= 0;
+		data_in <= 8'd1; @(posedge clk);
+		data_in <= 8'd2; @(posedge clk);
 		
 		// Test third group: 10, 20, 30, 40 (sum = 100)
-		ready_b = 1;
-		data_in = 8'd10; @(posedge clk);
-		data_in = 8'd20; @(posedge clk);
-		data_in = 8'd30; @(posedge clk);
-		data_in = 8'd40; @(posedge clk);
+		ready_b <= 1;
+		data_in <= 8'd10; @(posedge clk);
+		data_in <= 8'd20; @(posedge clk);
+		data_in <= 8'd30; @(posedge clk);
+		data_in <= 8'd40; @(posedge clk);
 		
 		// Random testing
 		repeat(300) @(posedge clk or negedge clk) begin
+			valid_a <= $random;
+			ready_b <= $random;
+			data_in <= $random % 256;
+		end
+
+		// === Additional checks: asynchronous active-low reset in mid-operation ===
+		// The quoted code resets data_cnt, valid_b and data_out on negedge rst_n; earlier stimulus only
+		// resets at start-up. rst_n changes between clock edges here, so no edge race.
+		@(posedge clk);
+		valid_a <= 1; ready_b <= 0;
+		data_in <= 8'd200; @(posedge clk);
+		data_in <= 8'd201; @(posedge clk);
+		data_in <= 8'd202; @(posedge clk);
+		data_in <= 8'd203; @(posedge clk);   // group complete, valid_b held high by ready_b=0
+		data_in <= 8'd99;  @(posedge clk);
+		#2 rst_n <= 0;                        // reset while valid_b=1 and data_out != 0
+		repeat(3) @(posedge clk);
+		#2 rst_n <= 1;
+		@(posedge clk);
+		ready_b <= 1;
+		data_in <= 8'd7;  @(posedge clk);
+		data_in <= 8'd9;  @(posedge clk);     // mid-group (data_cnt = 2)
+		#2 rst_n <= 0;                        // reset in the middle of a group
+		@(posedge clk);
+		#2 rst_n <= 1;
+		repeat(200) @(posedge clk or negedge clk) begin
 			valid_a <= $random;
 			ready_b <= $random;
 			data_in <= $random % 256;

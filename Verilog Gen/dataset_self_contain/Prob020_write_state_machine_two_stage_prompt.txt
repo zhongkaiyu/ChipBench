@@ -30,5 +30,4 @@ Output logic:
 - When current state is S4, the output flag should be 1
 - For all other states (S0, S1, S2, S3), the output flag should be 0
 
-Clarification: rst is an asynchronous active-low reset. Code the state register as always @(posedge clk or negedge rst), forcing the state to S0 (and flag to 0) immediately when rst is low, independent of the clock.
-
+Clarification: rst is an asynchronous active-low reset. Code the state register as always @(posedge clk or negedge rst), forcing the state to S0 (and flag to 0) immediately when rst is low, independent of the clock. flag must read 0 whenever rst is low.

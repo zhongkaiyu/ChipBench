@@ -12,45 +12,48 @@ module stimulus_gen (
 );
 	// === Start your code here ===
 	initial begin
-		rst = 0;
-		data = 0;
-		repeat(10) @(posedge clk);
 		rst = 1;
+		data = 0;
+		#1 rst = 0;   // assert reset after time 0 so every design sees the falling edge
+		// (inputs below are written nonblocking: a blocking write right after @(posedge clk) happens on
+		// the clock edge and races with the design's always blocks)
+		repeat(10) @(posedge clk);
+		rst <= 1;
 		@(posedge clk);
 		
 		// Test state transitions: S0->S1->S2->S3->S4 (flag=1)
-		data = 1; @(posedge clk);  // S0->S1
-		data = 1; @(posedge clk);  // S1->S2
-		data = 1; @(posedge clk);  // S2->S3
-		data = 1; @(posedge clk);  // S3->S4 (flag should be 1)
+		data <= 1; @(posedge clk);  // S0->S1
+		data <= 1; @(posedge clk);  // S1->S2
+		data <= 1; @(posedge clk);  // S2->S3
+		data <= 1; @(posedge clk);  // S3->S4 (flag should be 1)
 		
-		// Test S4->S1 transition (data=1)
-		data = 1; @(posedge clk);  // S4->S1
+		// Test S4->S1 transition (data<=1)
+		data <= 1; @(posedge clk);  // S4->S1
 		
-		// Test S4->S0 transition (data=0)
-		data = 1; @(posedge clk);  // S1->S2
-		data = 1; @(posedge clk);  // S2->S3
-		data = 1; @(posedge clk);  // S3->S4
-		data = 0; @(posedge clk);  // S4->S0
+		// Test S4->S0 transition (data<=0)
+		data <= 1; @(posedge clk);  // S1->S2
+		data <= 1; @(posedge clk);  // S2->S3
+		data <= 1; @(posedge clk);  // S3->S4
+		data <= 0; @(posedge clk);  // S4->S0
 		
-		// Test staying in S0 (data=0)
-		data = 0; @(posedge clk);  // S0->S0
-		data = 0; @(posedge clk);  // S0->S0
+		// Test staying in S0 (data<=0)
+		data <= 0; @(posedge clk);  // S0->S0
+		data <= 0; @(posedge clk);  // S0->S0
 		
-		// Test staying in S1 (data=0)
-		data = 1; @(posedge clk);  // S0->S1
-		data = 0; @(posedge clk);  // S1->S1
-		data = 0; @(posedge clk);  // S1->S1
+		// Test staying in S1 (data<=0)
+		data <= 1; @(posedge clk);  // S0->S1
+		data <= 0; @(posedge clk);  // S1->S1
+		data <= 0; @(posedge clk);  // S1->S1
 		
-		// Test staying in S2 (data=0)
-		data = 1; @(posedge clk);  // S1->S2
-		data = 0; @(posedge clk);  // S2->S2
-		data = 0; @(posedge clk);  // S2->S2
+		// Test staying in S2 (data<=0)
+		data <= 1; @(posedge clk);  // S1->S2
+		data <= 0; @(posedge clk);  // S2->S2
+		data <= 0; @(posedge clk);  // S2->S2
 		
-		// Test staying in S3 (data=0)
-		data = 1; @(posedge clk);  // S2->S3
-		data = 0; @(posedge clk);  // S3->S3
-		data = 0; @(posedge clk);  // S3->S3
+		// Test staying in S3 (data<=0)
+		data <= 1; @(posedge clk);  // S2->S3
+		data <= 0; @(posedge clk);  // S3->S3
+		data <= 0; @(posedge clk);  // S3->S3
 		
 		// Random testing
 		repeat(200) @(posedge clk, negedge clk) begin

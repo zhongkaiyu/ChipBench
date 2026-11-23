@@ -53,6 +53,18 @@ module stimulus_gen (
 		data_a <= 0; @(posedge clk);
 		data_a <= 0; @(posedge clk);
 		
+		// Pause after five bits of a word: valid_b must stay low until the sixth bit is received
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 1; @(posedge clk);
+		data_a <= 0; @(posedge clk);
+		valid_a <= 0;
+		repeat(3) @(posedge clk);
+		valid_a <= 1; data_a <= 1; @(posedge clk);
+		valid_a <= 0;
+		repeat(2) @(posedge clk);
+		
 		// Random testing
 		repeat(100) @(posedge clk, negedge clk) begin
 			valid_a <= $random;

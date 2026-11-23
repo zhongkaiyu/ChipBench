@@ -26,9 +26,8 @@ Data conversion process:
 - The module receives single-bit input data_a when valid_a is high
 - After receiving 6 input data bits, the module outputs the concatenated
   6-bit data_b with valid_b asserted
-- valid_b is high in each cycle after one in which 5 bits of the current
-  group had been received, even before the 6th bit arrives; data_b then still
-  holds the previous group
+- valid_b is high for one clock cycle after the edge that receives the 6th
+  bit, together with the new data_b
 - The first received data bit should be placed in the LSB (bit 0) of data_b
 - The last received data bit should be placed in the MSB (bit 5) of data_b
 - ready_a is always high indicates the module is always ready to receive input data
@@ -75,7 +74,7 @@ module TopModule(
 	    if (~rst_n)
 		    valid_b = 0;
 	    else
-		    valid_b = (cnt == 5);
+		    valid_b = (cnt == 5) && valid_a;
       end
 
      

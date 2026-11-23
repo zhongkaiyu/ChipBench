@@ -38,7 +38,7 @@ module RefModule(
         if(~rst_n)
             valid_b <= 0;
         else
-            valid_b <= cnt==5;
+            valid_b <= cnt==5&&valid_a;
     end
      
     always@(posedge clk or negedge rst_n) begin

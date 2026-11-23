@@ -14,7 +14,8 @@ specified.
 The module should implement a vending machine that accepts two types of
 currency (0.5 yuan and 1 yuan) and dispenses two types of beverages
 (1.5 yuan and 2.5 yuan) with change dispensing capability.
-reset is active low
+reset is active low: while rst is low the amount and out1, out2 and out3
+are 0 at once, without waiting for a clock edge
 
 The vending machine should work as follows:
 - Input currency: d1 represents 0.5 yuan, d2 represents 1 yuan
@@ -33,5 +34,10 @@ Beverage dispensing:
 - out2: Dispenses beverage 2 (2.5 yuan)
 - out3: Dispenses change (0.5 yuan coins only)
 
-Clarification: Treat d1 and d2 as level signals sampled on each rising clock edge - every clock cycle d1 is high adds 0.5 yuan and every cycle d2 is high adds 1 yuan. Do NOT add your own edge detection (the testbench already presents them as single-cycle pulses). Change (out3) is emitted in the same cycle as the beverage output (out1/out2), not on a following cycle.
+sel = 0 selects beverage 1, sel = 1 selects beverage 2. In each cycle the output of the beverage that sel
+currently selects is 1 when the amount accumulated at earlier rising edges is
+at least its price, and out3 is also 1 when the amount exceeds the price; only
+one 0.5 yuan coin is returned, whatever the excess. At the rising edge ending that cycle
+the amount returns to zero and coins presented in that cycle are not counted.
 
+Clarification: Treat d1 and d2 as level signals - every clock cycle d1 is high adds 0.5 yuan and every cycle d2 is high adds 1 yuan; if both are high only d1 counts. Do NOT add your own edge detection. Change (out3) is emitted in the same cycle as the beverage output (out1/out2), not on a following cycle.

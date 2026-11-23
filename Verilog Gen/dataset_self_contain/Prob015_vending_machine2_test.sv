@@ -19,49 +19,52 @@ module stimulus_gen (
 		d2 = 0;
 		sel = 0;
 		repeat(10) @(posedge clk);
-		rst = 1;
+		rst <= 1;
 		@(posedge clk);
 		
-		// Test case 1: Insert 1.5 yuan and select beverage 1 (sel=0)
-		d1 = 1; @(posedge clk);  // Insert 0.5 yuan
-		d1 = 0; @(posedge clk);
-		d1 = 1; @(posedge clk);  // Insert another 0.5 yuan
-		d1 = 0; @(posedge clk);
-		d1 = 1; @(posedge clk);  // Insert third 0.5 yuan
-		d1 = 0; @(posedge clk);
-		sel = 0; @(posedge clk);  // Select beverage 1
-		sel = 0; @(posedge clk);  // Should dispense beverage 1
+		// (inputs are written nonblocking: a blocking write right after @(posedge clk) happens on the
+		// clock edge and races with the design's always blocks)
+		// Test case 1: Insert 1.5 yuan and select beverage 1 (sel<=0)
+		d1 <= 1; @(posedge clk);  // Insert 0.5 yuan
+		d1 <= 0; @(posedge clk);
+		d1 <= 1; @(posedge clk);  // Insert another 0.5 yuan
+		d1 <= 0; @(posedge clk);
+		d1 <= 1; @(posedge clk);  // Insert third 0.5 yuan
+		d1 <= 0; @(posedge clk);
+		sel <= 0; @(posedge clk);  // Select beverage 1
+		sel <= 0; @(posedge clk);  // Should dispense beverage 1
 		
-		// Test case 2: Insert 2.5 yuan and select beverage 2 (sel=1)
-		d2 = 1; @(posedge clk);  // Insert 1 yuan
-		d2 = 0; @(posedge clk);
-		d2 = 1; @(posedge clk);  // Insert another 1 yuan
-		d2 = 0; @(posedge clk);
-		d1 = 1; @(posedge clk);  // Insert 0.5 yuan
-		d1 = 0; @(posedge clk);
-		sel = 1; @(posedge clk);  // Select beverage 2
-		sel = 1; @(posedge clk);  // Should dispense beverage 2
+		// Test case 2: Insert 2.5 yuan and select beverage 2 (sel<=1)
+		d2 <= 1; @(posedge clk);  // Insert 1 yuan
+		d2 <= 0; @(posedge clk);
+		d2 <= 1; @(posedge clk);  // Insert another 1 yuan
+		d2 <= 0; @(posedge clk);
+		d1 <= 1; @(posedge clk);  // Insert 0.5 yuan
+		d1 <= 0; @(posedge clk);
+		sel <= 1; @(posedge clk);  // Select beverage 2
+		sel <= 1; @(posedge clk);  // Should dispense beverage 2
 		
-		// Test case 3: Insert 2 yuan and select beverage 1 (sel=0) - should get change
-		d2 = 1; @(posedge clk);  // Insert 1 yuan
-		d2 = 0; @(posedge clk);
-		d2 = 1; @(posedge clk);  // Insert another 1 yuan
-		d2 = 0; @(posedge clk);
-		sel = 0; @(posedge clk);  // Select beverage 1
-		sel = 0; @(posedge clk);  // Should dispense beverage 1 + 0.5 yuan change
+		// Test case 3: Insert 2 yuan and select beverage 1 (sel<=0) - should get change
+		d2 <= 1; @(posedge clk);  // Insert 1 yuan
+		d2 <= 0; @(posedge clk);
+		d2 <= 1; @(posedge clk);  // Insert another 1 yuan
+		d2 <= 0; @(posedge clk);
+		sel <= 0; @(posedge clk);  // Select beverage 1
+		sel <= 0; @(posedge clk);  // Should dispense beverage 1 + 0.5 yuan change
 		
-		// Test case 4: Insert 3 yuan and select beverage 2 (sel=1) - should get change
-		d2 = 1; @(posedge clk);  // Insert 1 yuan
-		d2 = 0; @(posedge clk);
-		d2 = 1; @(posedge clk);  // Insert another 1 yuan
-		d2 = 0; @(posedge clk);
-		d2 = 1; @(posedge clk);  // Insert third 1 yuan
-		d2 = 0; @(posedge clk);
-		sel = 1; @(posedge clk);  // Select beverage 2
-		sel = 1; @(posedge clk);  // Should dispense beverage 2 + 0.5 yuan change
+		// Test case 4: Insert 3 yuan and select beverage 2 (sel<=1) - should get change
+		d2 <= 1; @(posedge clk);  // Insert 1 yuan
+		d2 <= 0; @(posedge clk);
+		d2 <= 1; @(posedge clk);  // Insert another 1 yuan
+		d2 <= 0; @(posedge clk);
+		d2 <= 1; @(posedge clk);  // Insert third 1 yuan
+		d2 <= 0; @(posedge clk);
+		sel <= 1; @(posedge clk);  // Select beverage 2
+		sel <= 1; @(posedge clk);  // Should dispense beverage 2 + 0.5 yuan change
 		
-		// Random testing
-		repeat(100) @(posedge clk, negedge clk) begin
+		// Random testing. Inputs change once per clock, right after the rising edge: the outputs are
+		// specified for inputs sampled at rising edges, not for inputs that change within a cycle.
+		repeat(100) @(posedge clk) begin
 			d1 <= $random;
 			d2 <= $random;
 			sel <= $random;

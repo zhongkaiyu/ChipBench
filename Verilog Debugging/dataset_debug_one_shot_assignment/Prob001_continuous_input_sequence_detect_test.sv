@@ -11,6 +11,15 @@ module stimulus_gen (
     input wire match_dut
 );
     bit failed = 0;
+    // additional check stimulus vectors (applied left to right)
+    localparam bit [13:0] OVL_BITS = 14'b01110001110001;
+    localparam bit [6:0]  PRE_BITS = 7'b0111000;
+    bit ovl [14];
+    bit pre [7];
+    initial begin
+        for (int i = 0; i < 14; i++) ovl[i] = OVL_BITS[13-i];
+        for (int i = 0; i < 7; i++)  pre[i] = PRE_BITS[6-i];
+    end
 
     always @(posedge clk, negedge clk)
         if (!tb_match)
@@ -60,6 +69,22 @@ module stimulus_gen (
 
         // Add delay to observe outputs
         repeat (100) @(posedge clk);
+
+        // Additional checks, added after all original stimulus:
+        // (1) overlapping occurrences: the spec asserts match whenever a_tem equals 8'b0111_0001,
+        //     so 0111_0001_110001 must give two matches six cycles apart.
+        foreach (ovl[i]) @(posedge clk) a <= ovl[i];
+        repeat (10) @(posedge clk) a <= 1;
+        // (2) reset clears a_tem: shift in the first seven pattern bits, reset (match is 0 and a_tem is
+        //     not the pattern when rst_n falls), then shift the last pattern bit. A cleared a_tem holds
+        //     8'b0000_0001 (no match); an uncleared one would complete the pattern.
+        foreach (pre[i]) @(posedge clk) a <= pre[i];
+        @(posedge clk) begin rst_n <= 0; a <= 1; end
+        @(posedge clk) rst_n <= 1;
+        repeat (12) @(posedge clk) a <= 1;
+        // (3) long random run (more pattern occurrences than the original 100 random bits).
+        repeat (3000) @(posedge clk) a <= $urandom;
+        repeat (10) @(posedge clk) a <= 0;
 
         #1 $finish;
     end

@@ -17,7 +17,7 @@ The module should implement an 8-bit shift register that shifts in the input `a`
    - On every positive edge of the clock, if `rst_n` is asserted (logic 1), the input `a` should be shifted into the least significant bit (LSB) of the shift register `a_tem`, and the previous bits should shift left by one position.
 
 3. **Matching Logic**:
-   - The output `match` should be asserted (logic 1) whenever the value of the shift register `a_tem` matches the specific 8-bit pattern `8'b0111_0001`.
+   - The output `match` should be asserted (logic 1) one clock cycle after the value of the shift register `a_tem` matches the specific 8-bit pattern `8'b0111_0001`.
    - If the shift register does not match this pattern, the output `match` should remain de-asserted (logic 0).
 
 The design must operate synchronously with the clock and use a negative edge active reset (`rst_n`). Ensure the module correctly implements this functionality.

@@ -1,4 +1,3 @@
-
 I would like you to implement a module named TopModule with the following
 interface.
 
@@ -15,7 +14,7 @@ This CPU is a simplified 16-bit processor model. It contains basic stages
 including Instruction Fetch, Decode, Execute, Memory Access, and Write Back.
 The Control module generates various control signals to coordinate data flow
 between the Register File (RF), Arithmetic Logic Unit (ALU), and memory. Each
-clock cycle, the CPU updates the program counter (PC) based on the current
+instruction, the CPU updates the program counter (PC) based on the current
 instruction (input from memory via the data bus), and executes arithmetic,
 logic, jump, or store operations. When encountering the special WWD
 instruction, it outputs register values to output_port, implementing a
@@ -25,7 +24,7 @@ Port descriptions:
 
 Input ports:
 - inputReady: Indicates that data is ready from the input port
-- reset_n: Active-low RESET signal
+- reset_n: Active-low asynchronous RESET signal; while it is low, PC, num_inst and readM are 0. The fetch of address 0 (readM=1) starts as soon as reset_n is high
 - clk: Clock signal
 
 Output ports:
@@ -81,7 +80,7 @@ The CPU execution follows these stages:
    - Save the instruction for decoding
 
 2. Decode:
-   - Extract opcode (bits [15:12]) and function (bits [5:0]) from instruction
+   - Extract opcode (bits [15:12]), rs [11:10], rt [9:8], rd [7:6], imm [7:0] and function (bits [5:0]) from instruction
    - Control module generates control signals based on opcode and function
    - RF module reads source registers (rs and rt) based on instruction fields
 
@@ -110,10 +109,11 @@ The CPU execution follows these stages:
      * Else if Branch & bcond: nextPC = PC + sign-extended(immediate)
      * Else: nextPC = PC + 1
    - Update PC to nextPC at next clock edge
+   - An instruction without memory access has one execute cycle after the edge that captures it, with readM=0 and address=PC; the next edge writes the register file, updates PC and num_inst, and starts the next fetch (readM=1, address=nextPC)
 
 7. Output Stage (WWD instruction):
    - If OpenPort=1 (WWD instruction), output ReadData1 to output_port
-   - Use: assign output_port = OpenPort ? ReadData1 : 16'bz;
+   - output_port is driven only in the WWD's execute cycle; in every other cycle it is 16'bz
 
 The following submodules are already provided and should be instantiated and included in
 your design, please do not edit this part:

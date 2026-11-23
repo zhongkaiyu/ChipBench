@@ -220,7 +220,7 @@ module tb();
 		end
 	endtask
 
-	initial stats1 = '{default:0};
+	initial stats1 = '0;
 
 	final begin
 		// === Start your code here ===
@@ -254,7 +254,11 @@ module tb();
 		({readM_ref, address_ref, num_inst_ref} ^
 		 {readM_dut, address_dut, num_inst_dut} ^
 		 {readM_ref, address_ref, num_inst_ref})) &&
-		(output_port_ref === output_port_dut);
+		op_ok;
+	// output_port: 'z where the reference drives 'z (the spec states 16'bz), exact elsewhere; an X in the reference
+	// (before the first reset edge) matches anything, as for the other outputs.
+	wire op_ok = (output_port_ref === output_port_dut) ||
+		(output_port_ref === (output_port_ref ^ output_port_dut ^ output_port_ref));
 
 	always @(posedge clk, negedge clk) begin
 		stats1.clocks++;
@@ -283,7 +287,7 @@ module tb();
 			stats1.errors_num_inst++;
 		end
 
-		if (output_port_ref !== output_port_dut) begin
+		if (!op_ok) begin
 			if (stats1.errors_output_port == 0)
 				stats1.errortime_output_port = $time;
 			stats1.errors_output_port++;

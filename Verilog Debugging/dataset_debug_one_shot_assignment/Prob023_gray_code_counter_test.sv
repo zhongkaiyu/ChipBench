@@ -18,7 +18,17 @@ module stimulus_gen (
 		
 		// Test Gray code counter for multiple cycles
 		repeat(200) @(posedge clk);
-		
+
+		// Additional checks: rst_n is active-low asynchronous and resets the counter to 0.
+		// The original stimulus only resets at t=0 (held from the start). Assert rst_n mid-run,
+		// between clock edges, while gray_out is non-zero, and hold it low to the end: gray_out
+		// must go to 0 at once and stay 0. (The reset is not released again: after a mid-run
+		// release RefModule restarts with 0001 held for one cycle only, which disagrees with the
+		// spec's "increments every two clock cycles", so the post-reset restart is not checked.)
+		repeat (5) @(posedge clk);
+		#2 rst_n = 0;            // assert 2 ps after a rising edge
+		repeat (20) @(posedge clk);
+
 		#1 $finish;
 	end
 	// === End your code here ===

@@ -18,7 +18,8 @@ The Gray code counter should work as follows:
   2. Convert the Gray code to binary representation
   3. Increment the binary value by 1
   4. Convert the incremented binary back to Gray code
-  5. Output the resulting Gray code
+  5. Output the resulting Gray code on gray_out at the next positive clock
+     edge (0000 while rst_n is low)
 - Gray code is a binary numeral system where two successive values differ
   in only one bit position
 - The counter should cycle through all 16 possible 4-bit Gray code values

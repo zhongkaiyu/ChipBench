@@ -12,7 +12,8 @@ low asynchronous, and should reset the counter to 0.
 
 The Gray code counter should work as follows:
 - The counter should generate a 4-bit Gray code sequence
-- The counter increments every two clock cycles
+- The counter increments every two clock cycles; after reset, gray_out first
+  becomes 0001 at the second rising edge of clk with rst_n high
 - The implementation should follow this process:
   1. Input a Gray code value (use an internal wire variable initialized to 0)
   2. Convert the Gray code to binary representation

@@ -85,6 +85,34 @@ module stimulus_gen (
 			write_addr <= $random & 7;
 			write_data <= $random & 15; // 4-bit data
 		end
+
+		// === Additional checks: asynchronous active-low reset in mid-operation ===
+		// Spec: "All data should be initialized to 0000"; "The rst_n signal is an active-low asynchronous reset
+		// signal." Earlier stimulus only resets at start-up. Fill every location with non-zero data, reset
+		// between edges, then read every location back (addresses 0..7 only).
+		@(posedge clk);
+		read_en <= 1; write_en <= 1;
+		for (int a = 0; a < 8; a++) begin
+			write_addr <= a; write_data <= 4'(a + 8); read_addr <= 7 - a;
+			@(posedge clk);
+		end
+		write_en <= 0; read_addr <= 5;
+		@(posedge clk);                         // read_data != 0 here
+		#2 rst_n <= 0;
+		repeat(2) @(posedge clk);
+		#2 rst_n <= 1;
+		@(posedge clk);
+		for (int a = 0; a < 8; a++) begin
+			read_addr <= a;
+			@(posedge clk);
+		end
+		repeat(100) @(posedge clk) begin
+			read_en <= $random & 1;
+			write_en <= $random & 1;
+			read_addr <= $random & 7;
+			write_addr <= $random & 7;
+			write_data <= $random & 15;
+		end
 		
 		#1 $finish;
 	end

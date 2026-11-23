@@ -85,7 +85,34 @@ module stimulus_gen (
 			write_addr <= $random & 7;
 			write_data <= $random & 15; // 4-bit data
 		end
-		
+
+		// Additional checks: "The asynchronous reset clears read_data to 0." The original stimulus
+		// only resets at the start. Assert rst_n mid-run, between clock edges, while read_data is
+		// non-zero, hold it two cycles, release between edges. Memory contents after a mid-run reset
+		// are not stated, so every location is rewritten (read_en low) before reads resume.
+		for (int r = 0; r < 3; r++) begin
+			// make read_data non-zero: write a non-zero value, then read it
+			@(posedge clk) begin
+				read_en <= 0; write_en <= 1; write_addr <= r; write_data <= 4'h9 + r;
+			end
+			@(posedge clk) begin write_en <= 0; read_en <= 1; read_addr <= r; end
+			@(posedge clk) read_en <= 0;
+			@(negedge clk) rst_n <= 0;       // asynchronous: read_data must clear before the next edge
+			repeat (2) @(posedge clk);
+			@(negedge clk) rst_n <= 1;
+			for (int a = 0; a < 8; a++) @(posedge clk) begin
+				write_en <= 1; write_addr <= a; write_data <= $random & 15;
+			end
+			@(posedge clk) write_en <= 0;
+			repeat (60) @(posedge clk) begin
+				read_en <= $random & 1;
+				write_en <= $random & 1;
+				read_addr <= $random & 7;
+				write_addr <= $random & 7;
+				write_data <= $random & 15;
+			end
+		end
+
 		#1 $finish;
 	end
 	// === End your code here ===
